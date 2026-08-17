@@ -1,0 +1,46 @@
+{
+  "name": "@anchorlock/cli",
+  "version": "0.1.3",
+  "description": "Keep AI-generated code faithful to your contract. Field-name gate for CI.",
+  "bin": {
+    "anchor": "./bin/anchor.js"
+  },
+  "main": "lib/cli.js",
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs",
+    "public/index.html",
+    "ci",
+    "skills"
+  ],
+  "scripts": {
+    "test": "node --test test/",
+    "demo": "node bin/anchor.js demo",
+    "preview": "npx --yes serve public -l 4174",
+    "prepublishOnly": "npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@keelforge/spec-forge": "^0.5.19"
+  },
+  "homepage": "https://www.npmjs.com/package/@anchorlock/cli",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "ai",
+    "contract",
+    "field-names",
+    "lint",
+    "ci",
+    "openapi"
+  ],
+  "license": "MIT"
+}

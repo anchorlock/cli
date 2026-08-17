@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem("anchorlock-theme");
+        if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day";
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "day");
+      }
+    })();
+  </script>
+  <title>AnchorLock - AI Coding 时，Agent 越多，越需要同一块锚</title>
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-400-normal.woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-600-normal.woff2" />
+  <meta name="description" content="产品、前端、后端、测试 Agent 可以分头推进，但不能各自发明字段、结构和值域。Anchorlock 把业务契约锚住：字段叫什么、结构怎么长、哪些值合法。写偏了，合并就停。" />
+  <style>
+    @font-face {
+      font-family: "Geist";
+      font-style: normal;
+      font-weight: 400;
+      font-display: optional;
+      src: url("https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-400-normal.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Geist";
+      font-style: normal;
+      font-weight: 500;
+      font-display: optional;
+      src: url("https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-500-normal.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Geist";
+      font-style: normal;
+      font-weight: 600;
+      font-display: optional;
+      src: url("https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-600-normal.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Geist Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: optional;
+      src: url("https://cdn.jsdelivr.net/fontsource/fonts/geist-mono@5.2.5/latin-400-normal.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Geist Mono";
+      font-style: normal;
+      font-weight: 500;
+      font-display: optional;
+      src: url("https://cdn.jsdelivr.net/fontsource/fonts/geist-mono@5.2.5/latin-500-normal.woff2") format("woff2");
+    }
+
+    :root,
+    html[data-theme="day"] {
+      color-scheme: light;
+      --bg: #f9f8f8;
+      --bg-elev: rgba(255, 255, 255, 0.88);
+      --text: #2c3138;
+      --text-secondary: #6a717a;
+      --text-muted: #8b919a;
+      --accent: #4176e6;
+      --accent-hover: #2f62d0;
+      --accent-soft: rgba(65, 118, 230, 0.09);
+      --anchor: #1a2740;
+      --title: #2e343c;
+      --claim: #5a616b;
+      --border: rgba(32, 38, 48, 0.09);
+      --border-strong: rgba(32, 38, 48, 0.15);
+      --success: #4176e6;
+      --danger: hsl(8, 18%, 48%);
+      --fail-soft: rgba(122, 86, 82, 0.08);
+      --ink: #15181f;
+      --nav-bg: rgba(255, 255, 255, 0.72);
+      --fog: rgba(249, 248, 248, 0.5);
+      --flow-box: rgba(255, 255, 255, 0.8);
+      --th: rgba(246, 247, 249, 0.95);
+      --grid: rgba(32, 38, 48, 0.04);
+      --shadow: 0 10px 36px rgba(32, 38, 48, 0.06);
+      --code: #eef3fa;
+      --code-muted: #8a96a6;
+      --code-comment: #aab3c0;
+      --code-cmd: #c5d8ff;
+      --code-ok: #8fd4c0;
+      --code-fail: #f0b8b2;
+      --term-bar: #1b1f28;
+      --term-line: #8a93a0;
+      --wash-a: rgba(186, 204, 236, 0.42);
+      --wash-b: rgba(214, 222, 236, 0.5);
+      --wash-c: rgba(249, 248, 248, 0.4);
+      --plot-ring: rgba(21, 36, 67, 0.18);
+      --plot-tick: rgba(65, 118, 230, 0.55);
+      --plot-hex: #152443;
+      --plot-hold: #4176e6;
+      --plot-drift: rgba(21, 36, 67, 0.42);
+      --plot-glow: #4176e6;
+      --plot-bloom: 0.14;
+      --plot-label: rgba(21, 36, 67, 0.45);
+      --plot-text-drift: #4a5568;
+      --plot-text-hold: #2f62d0;
+      --plot-text-lock: #152443;
+      --plot-locked: hsl(162, 28%, 36%);
+      --plot-text-locked: hsl(162, 26%, 32%);
+      --radius: 8px;
+      --font: "Geist", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --mono: "Geist Mono", "SF Mono", ui-monospace, monospace;
+      --max-w: 1120px;
+    }
+    html[data-theme="night"] {
+      color-scheme: dark;
+      --bg: #0c0d10;
+      --bg-elev: rgba(20, 22, 28, 0.78);
+      --text: #e6eaef;
+      --text-secondary: #c2c8d0;
+      --text-muted: #8b929c;
+      --accent: #6b8ff0;
+      --accent-hover: #8aa6f4;
+      --accent-soft: rgba(107, 143, 240, 0.14);
+      --anchor: #e8ebf0;
+      --title: #f3f4f7;
+      --claim: #c5cbd4;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --success: #6b8ff0;
+      --danger: hsl(8, 26%, 76%);
+      --fail-soft: rgba(196, 140, 136, 0.1);
+      --ink: #08090c;
+      --nav-bg: rgba(12, 13, 16, 0.62);
+      --fog: rgba(12, 13, 16, 0.5);
+      --flow-box: rgba(28, 31, 38, 0.72);
+      --th: rgba(32, 35, 44, 0.9);
+      --grid: rgba(238, 240, 243, 0.04);
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+      --code: #f4f7fc;
+      --code-muted: #9aa3b0;
+      --code-comment: #b8c1cd;
+      --code-cmd: #d4e2ff;
+      --code-ok: #9ee0ce;
+      --code-fail: #f3c4be;
+      --term-bar: #14171e;
+      --term-line: #9aa3b0;
+      --wash-a: rgba(45, 62, 110, 0.28);
+      --wash-b: rgba(20, 28, 48, 0.4);
+      --wash-c: rgba(12, 13, 16, 0.5);
+      --plot-ring: rgba(210, 220, 238, 0.42);
+      --plot-tick: rgba(140, 175, 255, 0.78);
+      --plot-hex: #e8eef8;
+      --plot-hold: #8eb0f7;
+      --plot-drift: rgba(210, 220, 235, 0.78);
+      --plot-glow: #8eb0f7;
+      --plot-label: rgba(220, 228, 242, 0.82);
+      --plot-text-drift: #c9d1dc;
+      --plot-text-hold: #b4c8fa;
+      --plot-text-lock: #eef1f6;
+      --plot-locked: hsl(162, 34%, 62%);
+      --plot-text-locked: hsl(162, 30%, 74%);
+      --plot-bloom: 0.3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; background: var(--bg); transition: background-color .28s ease, color .28s ease; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    .ambient {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+      background:
+        radial-gradient(ellipse 78% 58% at 72% 8%, var(--wash-a), transparent 62%),
+        radial-gradient(ellipse 48% 42% at 8% 92%, var(--wash-b), transparent 55%),
+        var(--bg);
+    }
+    .ambient::before { display: none; }
+    .ambient::after { display: none; }
+    .scan { display: none; }
+    .plasma {
+      position: absolute; inset: -16%; width: 132%; height: 132%;
+      display: none;
+      filter: blur(72px) saturate(0.88);
+      transform: translateZ(0);
+    }
+    html.motion-ok .plasma.is-on { display: block; opacity: 0.78; }
+    .ambient.has-plasma { background: var(--bg); }
+    .wrap { position: relative; z-index: 1; max-width: var(--max-w); margin: 0 auto; padding: 0 28px; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(20px) saturate(120%);
+      -webkit-backdrop-filter: blur(20px) saturate(120%);
+      background: var(--nav-bg);
+      border-bottom: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    html[data-theme="night"] nav {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
+    .nav-end { display: flex; align-items: center; gap: 10px; }
+    .theme-switch {
+      display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+      position: relative;
+      border: 1px solid var(--border-strong);
+      background: color-mix(in srgb, var(--text) 6%, var(--bg));
+      padding: 2px;
+      font-family: var(--mono);
+      border-radius: var(--radius);
+    }
+    .theme-switch::before {
+      content: "";
+      position: absolute;
+      top: 2px; bottom: 2px; left: 2px;
+      width: calc(50% - 2px);
+      background: var(--accent);
+      border-radius: 6px;
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 0;
+    }
+    html[data-theme="night"] .theme-switch::before { transform: translateX(100%); }
+    .theme-switch button {
+      appearance: none; border: 0; background: transparent;
+      color: var(--text-muted);
+      font: 500 10px/1 var(--mono);
+      letter-spacing: 0.1em;
+      padding: 6px 9px;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+      transition: color 0.25s ease;
+    }
+    .theme-switch button[aria-pressed="true"] {
+      background: transparent;
+      color: #fff;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--title);
+      font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+    }
+    .logo-icon {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--accent); display: flex; align-items: center; justify-content: center;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .logo:hover .logo-icon { transform: translateY(1px); }
+    .logo-icon svg { width: 12px; height: 12px; }
+    .nav-links { display: flex; gap: 22px; list-style: none; }
+    .nav-links a {
+      position: relative;
+      color: var(--text); text-decoration: none;
+      font-size: 13px; font-weight: 500; opacity: 0.78;
+      transition: opacity 0.25s ease;
+    }
+    .nav-links a::after {
+      content: "";
+      position: absolute; left: 0; right: 0; bottom: -5px;
+      height: 1px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      opacity: 0.7;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-links a:hover::after { transform: scaleX(1); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      position: relative;
+      overflow: hidden;
+      padding: 11px 18px; border-radius: var(--radius);
+      font-size: 14px; font-weight: 500; text-decoration: none;
+      border: none; cursor: pointer; font-family: var(--font);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    .btn-primary::before,
+    .btn-primary::after { display: none; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-ghost {
+      background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn-ghost:hover {
+      border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+      color: var(--anchor);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), var(--shadow);
+    }
+    html[data-theme="night"] .btn-primary {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    html[data-theme="night"] .btn-ghost {
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    html[data-theme="night"] .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: none;
+    }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    .hero {
+      position: relative;
+      min-height: calc(100dvh - 56px);
+      display: flex; align-items: center;
+      padding: 24px 0 56px;
+      overflow: hidden;
+    }
+    .hero .wrap { max-width: 1180px; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 40px 56px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero h1 {
+      font-size: clamp(3.35rem, 6.4vw, 5.2rem);
+      font-weight: 600;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      margin: 0 0 22px;
+      color: var(--title);
+    }
+    .hero-stack {
+      display: inline-block;
+      max-width: 100%;
+      vertical-align: top;
+    }
+    .hero-claim {
+      font-size: clamp(1.18rem, 2.05vw, 1.48rem);
+      font-weight: 600;
+      letter-spacing: -0.022em;
+      line-height: 1.4;
+      color: var(--claim);
+      margin: 0 0 28px;
+      max-width: none;
+      white-space: nowrap;
+    }
+    .hero-lead {
+      width: 0;
+      min-width: 100%;
+      margin-bottom: 40px;
+      font-size: 15px; color: var(--text-secondary); line-height: 1.8;
+    }
+    .hero-lead strong { color: var(--anchor); font-weight: 600; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-visual {
+      position: relative;
+      margin: 0;
+      width: 100%;
+      max-width: none;
+      aspect-ratio: 6 / 5;
+      background: none;
+      border: none;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .hero-visual svg { display: block; width: 100%; height: 100%; }
+    .kicker {
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 18px;
+    }
+    .hero-visual text {
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .glow-drift { filter: none; }
+    .glow-hold { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--plot-glow) 40%, transparent)); }
+    .glow-lock { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--plot-glow) 32%, transparent)); }
+    html[data-theme="day"] .glow-drift,
+    html[data-theme="day"] .glow-hold,
+    html[data-theme="day"] .glow-lock { filter: none; }
+    html[data-theme="day"] .halo-pulse { opacity: 0.4; }
+    html[data-theme="day"] .scan-beam { opacity: 0.4; }
+    html[data-theme="day"] .sonar-ring { stroke-opacity: 0.55; }
+    .halo-pulse {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: halo 2.2s ease-out infinite;
+    }
+    .scan-beam { animation: scan 5.2s linear infinite; }
+    .sonar-ring {
+      transform-box: view-box;
+      transform-origin: 240px 160px;
+      fill: none;
+      stroke: var(--plot-hold);
+      stroke-width: 0.65;
+      animation: sonar 4.4s cubic-bezier(0.12, 0.6, 0.28, 1) infinite;
+    }
+    .sonar-b { animation-delay: 1.45s; stroke: var(--plot-glow); }
+    .sonar-c { animation-delay: 2.9s; }
+    html[data-theme="day"] .hero-visual text { filter: none; }
+    html[data-theme="night"] .hero-visual text { filter: none; }
+    html[data-theme="night"] .sonar-ring { stroke-opacity: 0.9; }
+    html[data-theme="night"] .halo-pulse { opacity: 0.72; }
+    html[data-theme="night"] .hero-visual .ring-spin { opacity: 0.42; }
+    html[data-theme="night"] .hero-visual .ring-spin-rev { opacity: 0.3; }
+    html[data-theme="night"] .hero-visual .sweep line { opacity: 0.72; }
+    html[data-theme="night"] .hero-visual .sweep path { opacity: 0.9; }
+    html[data-theme="night"] .hero-visual .graticule line { opacity: 0.32; }
+    html[data-theme="night"] .hero-visual .graticule > circle { opacity: 0.55; }
+    html[data-theme="night"] .hero-visual .graticule g { opacity: 0.85; }
+    html[data-theme="night"] .glow-hold {
+      filter: drop-shadow(0 0 6px color-mix(in srgb, var(--plot-glow) 55%, transparent));
+    }
+    html[data-theme="night"] .glow-lock {
+      filter: drop-shadow(0 0 9px color-mix(in srgb, var(--plot-glow) 48%, transparent));
+    }
+
+    .ring-spin, .ring-spin-rev {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .ring-spin { animation: spin 48s linear infinite; }
+    .ring-spin-rev { animation: spin 36s linear infinite reverse; }
+    .sweep {
+      transform-box: view-box;
+      transform-origin: 240px 160px;
+    }
+    .hero-visual, .cast-photo { --beat: 16s; }
+    html.motion-ok .drift-a,
+    html.motion-ok .drift-b,
+    html.motion-ok .drift-c,
+    html.motion-ok .drift-d {
+      animation: none;
+    }
+    .anchor-drop {
+      animation: drop-anchor var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    html.motion-ok .anchor-drop {
+      animation: none;
+      opacity: 0;
+    }
+    .tethers { stroke-dasharray: 2 10; }
+    .tethers.is-taut { stroke-dasharray: none; }
+    .lock-meta {
+      animation: lock-meta var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .chain-hold, .chain-name {
+      animation: chain-a var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .chain-draw-1, .chain-draw-2 {
+      stroke-dasharray: 44;
+    }
+    .chain-draw-1 { animation: chain-draw-a var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+    .chain-draw-2 { animation: chain-draw-b var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+    .chain-locked {
+      animation: chain-b var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .bind-drop {
+      animation: drop-anchor var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+      transform-box: fill-box;
+      transform-origin: 180px 118px;
+    }
+    .cast-line {
+      stroke-dasharray: 50;
+      animation: cast-draw var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .cast-check {
+      animation: taut-line var(--beat) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+    .node-pulse { animation: pulse 3.2s ease-in-out infinite; }
+    .sweep { animation: spin 24s linear infinite; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes sonar {
+      0% { transform: scale(0.28); opacity: 0.42; }
+      55% { opacity: 0.14; }
+      100% { transform: scale(1.92); opacity: 0; }
+    }
+    @keyframes dash { to { stroke-dashoffset: -48; } }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 1; }
+    }
+    @keyframes halo {
+      0% { transform: scale(1); opacity: 0.55; }
+      100% { transform: scale(2.9); opacity: 0; }
+    }
+    @keyframes scan {
+      0% { transform: translateY(-30%); }
+      100% { transform: translateY(380%); }
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(5px, -7px); }
+      50% { transform: translate(1px, -2px); }
+      75% { transform: translate(-4px, 4px); }
+    }
+    @keyframes drop-anchor {
+      0%, 14% { transform: translateY(-38px); opacity: 0; }
+      24% { transform: translateY(3px); opacity: 1; }
+      30%, 80% { transform: translateY(0); opacity: 1; }
+      90%, 100% { transform: translateY(-28px); opacity: 0; }
+    }
+    @keyframes slack-line {
+      0%, 22% { opacity: 0.55; stroke-dasharray: 2 11; }
+      38%, 78% { opacity: 0.08; stroke-dasharray: 2 11; }
+      90%, 100% { opacity: 0.55; stroke-dasharray: 2 11; }
+    }
+    @keyframes taut-line {
+      0%, 28% { opacity: 0; }
+      42%, 78% { opacity: 0.88; }
+      90%, 100% { opacity: 0; }
+    }
+    @keyframes lock-meta {
+      0%, 20% { opacity: 0; }
+      32%, 80% { opacity: 0.72; }
+      90%, 100% { opacity: 0; }
+    }
+    @keyframes chain-a {
+      0%, 44% { opacity: 0.18; }
+      54%, 80% { opacity: 1; }
+      90%, 100% { opacity: 0.18; }
+    }
+    @keyframes chain-b {
+      0%, 56% { opacity: 0; }
+      66%, 80% { opacity: 1; }
+      90%, 100% { opacity: 0; }
+    }
+    @keyframes chain-draw-a {
+      0%, 46% { stroke-dashoffset: 44; opacity: 0.2; }
+      56%, 80% { stroke-dashoffset: 0; opacity: 1; }
+      90%, 100% { stroke-dashoffset: 44; opacity: 0.2; }
+    }
+    @keyframes chain-draw-b {
+      0%, 56% { stroke-dashoffset: 44; opacity: 0.2; }
+      66%, 80% { stroke-dashoffset: 0; opacity: 1; }
+      90%, 100% { stroke-dashoffset: 44; opacity: 0.2; }
+    }
+    @keyframes cast-draw {
+      0%, 22% { stroke-dashoffset: 50; opacity: 0.2; }
+      40%, 78% { stroke-dashoffset: 0; opacity: 0.9; }
+      90%, 100% { stroke-dashoffset: 50; opacity: 0.2; }
+    }
+    @keyframes drift-cycle {
+      0% { transform: translate(0, 0); }
+      8% { transform: translate(5px, -7px); }
+      16% { transform: translate(-3px, 4px); }
+      24% { transform: translate(4px, -3px); }
+      36%, 80% { transform: translate(0, 0); }
+      90% { transform: translate(2px, -2px); }
+      100% { transform: translate(0, 0); }
+    }
+    @keyframes sheen {
+      to { transform: translateX(460%) skewX(-18deg); }
+    }
+
+    .spec-strip {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(90deg, var(--accent-soft), transparent 42%),
+        var(--bg-elev);
+    }
+    .spec-strip article { padding: 18px 22px; border-right: 1px solid var(--border); }
+    .spec-strip article:last-child { border-right: none; }
+    .spec-k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+    .spec-v { font-size: 15px; font-weight: 600; color: var(--anchor); letter-spacing: -0.02em; }
+    .spec-v.danger { color: var(--danger); }
+    .spec-v.ok { color: var(--accent); }
+
+    section { padding: 80px 0; }
+    .section-title {
+      font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+      font-weight: 500; letter-spacing: -0.032em;
+      line-height: 1.25; margin-bottom: 12px; color: var(--anchor);
+    }
+    .section-desc { color: var(--text-secondary); max-width: 36rem; margin-bottom: 32px; font-size: 15px; }
+    .section-desc code, .compare-card code, .compose-card code, .path-note code, .who-card code, .start-callout code, .hero-lead code {
+      font-family: var(--mono); font-size: 12px; color: var(--accent);
+    }
+
+    .ledger {
+      position: relative;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elev);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .ledger::after,
+    .compare::after,
+    .path-pick::after,
+    .terminal::after,
+    .who-card::after {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 12%, transparent), transparent 58%);
+      opacity: 0;
+      transition: opacity 0.45s ease;
+      z-index: 1;
+    }
+    .ledger:hover::after,
+    .compare:hover::after,
+    .path-pick:hover::after,
+    .terminal:hover::after,
+    .who-card:hover::after { opacity: 1; }
+    .ledger-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      font-family: var(--mono); font-size: 11px;
+      color: color-mix(in srgb, var(--text) 55%, var(--text-muted));
+      letter-spacing: 0.04em;
+    }
+    .ledger-row {
+      display: grid; grid-template-columns: 140px 1fr 1fr;
+      gap: 16px; padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ledger-row:last-child { border-bottom: none; }
+    .ledger-who { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); letter-spacing: 0.04em; }
+    .ledger-row p { font-size: 13px; color: color-mix(in srgb, var(--text) 50%, var(--text-secondary)); margin: 0; }
+    .ledger-row code { font-family: var(--mono); font-size: 12px; color: var(--danger); }
+    .split-code {
+      display: grid; grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--border);
+    }
+    .hero-panel { min-width: 0; }
+    .hero-panel + .hero-panel { border-left: 1px solid var(--border); }
+    .hero-panel-head {
+      display: flex; justify-content: space-between;
+      padding: 10px 16px; font-size: 12px; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-panel.bad .hero-panel-head { color: var(--danger); background: var(--fail-soft); }
+    .hero-panel.good .hero-panel-head { color: var(--accent); background: var(--accent-soft); }
+    .hero-panel-head .file { font-family: var(--mono); font-weight: 400; font-size: 11px; color: color-mix(in srgb, var(--text) 45%, var(--text-muted)); }
+    .hero-panel pre {
+      font-family: var(--mono); font-size: 13px; line-height: 1.75;
+      padding: 16px 18px; margin: 0; color: var(--code); background: var(--ink);
+    }
+    .hero-panel pre .x { color: var(--danger); font-weight: 500; }
+    .hero-panel pre .ok { color: var(--success); font-weight: 500; }
+    .hero-panel pre .c { color: var(--code-comment); }
+    .hero-one-liner { margin-top: 16px; font-size: 14px; color: var(--text-secondary); }
+    .hero-one-liner strong { color: var(--anchor); }
+
+    .compare { display: grid; grid-template-columns: 1fr 1fr; position: relative; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; background: var(--bg-elev); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+    .compare-card { padding: 28px 26px; }
+    .compare-card + .compare-card { border-left: 1px solid var(--border); }
+    .compare-card.highlight { background: var(--accent-soft); }
+    .compare-tag {
+      display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.06em; padding: 2px 0; margin-bottom: 12px;
+    }
+    .compare-tag.ok { color: var(--accent); }
+    .compare-tag.bad { color: var(--text-secondary); }
+    .compare-tag code { font-family: var(--mono); font-size: 10px; color: inherit; }
+    .compare-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.02em; color: var(--anchor); }
+    .compare-card p { font-size: 14px; color: var(--text-secondary); }
+
+    .compose-list { display: grid; gap: 0; border-top: 1px solid var(--border); }
+    .compose-card {
+      display: grid; grid-template-columns: 56px 1fr;
+      gap: 18px; padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+      background: transparent; box-shadow: none;
+    }
+    .compose-num { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); padding-top: 2px; }
+    .compose-card h3 { font-size: 16px; font-weight: 600; color: var(--anchor); margin-bottom: 6px; letter-spacing: -0.02em; }
+    .compose-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+    .code-block {
+      background: var(--ink); border-radius: var(--radius);
+      padding: 22px 24px; overflow-x: auto;
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+      box-shadow: var(--shadow);
+    }
+    .code-block pre { font-family: var(--mono); font-size: 13.5px; line-height: 1.8; color: var(--code); font-weight: 500; }
+    .code-block .comment { color: var(--code-comment); font-weight: 400; }
+    .code-block .cmd { color: var(--code-cmd); font-weight: 600; }
+    .code-block .out { color: var(--code-ok); font-weight: 600; }
+    .code-block .err { color: var(--code-fail); font-weight: 600; }
+
+    .terminal {
+      position: relative;
+      background: var(--ink); border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+      border-radius: 8px; overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 14px; background: var(--term-bar); border-bottom: 1px solid color-mix(in srgb, var(--code) 12%, transparent);
+    }
+    .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dot.r { background: #b88986; }
+    .terminal-dot.y { background: #c2ab78; }
+    .terminal-dot.g { background: #7a9a86; }
+    .terminal-title { flex: 1; text-align: center; font-size: 11px; color: var(--term-line); font-family: var(--mono); }
+    .terminal-body {
+      position: relative;
+      padding: 20px 22px 20px 52px; font-family: var(--mono);
+      font-size: 13.5px; line-height: 1.85; color: var(--code);
+      counter-reset: tline;
+    }
+    .terminal-body > div {
+      position: relative;
+      counter-increment: tline;
+    }
+    .terminal-body > div::before {
+      content: counter(tline);
+      position: absolute; left: -36px; width: 24px; text-align: right;
+      color: var(--term-line); font-size: 11px;
+    }
+    .terminal-body .violation { color: var(--code-fail); font-weight: 600; }
+    .terminal-body .pass { color: var(--code-ok); font-weight: 600; }
+    .terminal-body .dim { color: var(--code-comment); font-weight: 400; }
+    .caret {
+      display: inline-block;
+      width: 8px; height: 1.05em;
+      margin-left: 3px;
+      background: var(--accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
+      vertical-align: -2px;
+      animation: caret 1.05s steps(1) infinite;
+    }
+    @keyframes caret {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .cast-grid {
+      display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 28px; align-items: stretch;
+    }
+    .cast-photo {
+      margin: 0;
+      min-height: 280px;
+      background: none;
+      border: none;
+      overflow: visible;
+      mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 32%, transparent 78%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 32%, transparent 78%);
+    }
+    .cast-photo svg { display: block; width: 100%; height: 100%; min-height: 280px; }
+    .cast-stack { display: grid; gap: 0; border-top: 1px solid var(--border); }
+    .cast-item { padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .cast-item h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--anchor); }
+    .cast-item p { font-size: 14px; color: var(--text-secondary); }
+    .cast-item .compare-tag { margin-bottom: 8px; }
+
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--bg-elev); backdrop-filter: blur(18px); border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
+    .mini-table th, .mini-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .mini-table th { background: var(--th); font-weight: 600; width: 28%; }
+    .mini-table td { color: var(--text-secondary); }
+    .mini-table code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+    .start-callout {
+      margin-bottom: 28px; padding: 14px 16px;
+      background: var(--bg-elev); border: 1px solid var(--border-strong);
+      border-left: 2px solid var(--accent); border-radius: var(--radius);
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .path-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
+    .path-pick {
+      display: block; text-decoration: none; color: inherit;
+      position: relative; overflow: hidden;
+      background: var(--bg-elev); backdrop-filter: blur(18px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius); padding: 22px 20px;
+      transition: border-color 0.28s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+    }
+    .path-pick:hover {
+      border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .path-pick.rec { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
+    .path-pick-kicker { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); margin-bottom: 8px; }
+    .path-pick h3 { font-size: 17px; font-weight: 600; color: var(--anchor); margin-bottom: 8px; letter-spacing: -0.02em; }
+    .path-pick p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 14px; }
+    .path-pick-go { font-size: 13px; font-weight: 600; color: var(--accent); }
+    main > section { scroll-margin-top: 80px; }
+    .path-how-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .path-how-head h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--anchor); }
+    .path-mark { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+    .path-how > .section-desc { margin-bottom: 20px; }
+    .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .who-card { position: relative; overflow: hidden; background: var(--bg-elev); backdrop-filter: blur(18px); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 16px 18px; }
+    .who-card h4 { font-size: 13px; font-weight: 600; color: var(--anchor); margin-bottom: 8px; }
+    .who-card ol { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+    .who-card li { margin-bottom: 6px; }
+    .who-card li:last-child { margin-bottom: 0; }
+    .path-note { font-size: 13px; color: var(--text-secondary); margin: 14px 0 0; }
+    .flow { background: var(--bg-elev); backdrop-filter: blur(18px); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 22px 20px 18px; margin: 0 0 20px; }
+    .flow-caption { font-size: 13px; color: var(--text-secondary); margin: 16px 0 0; line-height: 1.6; }
+    .flow-caption strong { color: var(--anchor); }
+    .flow-caption code { font-family: var(--mono); font-size: 12px; color: var(--anchor); }
+    .flow-board { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px 14px; align-items: stretch; }
+    .flow-lane { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); margin-bottom: 10px; }
+    .flow-box { background: var(--flow-box); border: 1px solid var(--border-strong); border-radius: 4px; padding: 10px 12px; font-size: 13px; color: var(--text); line-height: 1.45; }
+    .flow-box small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px; font-family: var(--mono); }
+    .flow-box.file { border-color: color-mix(in srgb, var(--accent) 35%, transparent); background: var(--accent-soft); font-weight: 600; color: var(--anchor); }
+    .flow-box.ok { border-color: color-mix(in srgb, var(--plot-locked) 40%, transparent); background: color-mix(in srgb, var(--plot-locked) 10%, transparent); }
+    .flow-box.warn { border-color: color-mix(in srgb, var(--danger) 35%, transparent); background: var(--fail-soft); color: var(--text-secondary); }
+    .flow-stack { display: flex; flex-direction: column; gap: 8px; }
+    .flow-join { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 88px; color: var(--text-muted); font-size: 11px; font-weight: 600; text-align: center; gap: 6px; }
+    .flow-join span { line-height: 1.35; }
+    .flow-join::before, .flow-join::after { content: ""; width: 1px; flex: 1; background: color-mix(in srgb, var(--accent) 40%, transparent); min-height: 12px; }
+    .flow-arrow { text-align: center; color: var(--accent); font-size: 14px; line-height: 1; font-weight: 600; }
+    .flow-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fork-board { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: start; margin-bottom: 28px; }
+    .fork-q { grid-column: 1 / -1; text-align: center; }
+    .fork-q .flow-box { display: inline-block; padding: 12px 22px; font-size: 15px; font-weight: 600; }
+    .fork-arm { text-align: center; }
+    .fork-arm .flow-arrow { color: var(--text-muted); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .fork-mid { width: 1px; }
+
+    footer { border-top: 1px solid var(--border); padding: 28px 0; }
+    .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-copy { font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 20px; list-style: none; }
+    .footer-links a { font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+    .footer-links a:hover { color: var(--accent); }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: none; }
+    }
+    .hero-copy { animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .hero-visual { animation: rise 1s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    html.motion-ok main section:not(.hero) .wrap {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    html.motion-ok main section:not(.hero).is-in .wrap {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero-copy, .hero-visual,
+      .ring-spin, .ring-spin-rev, .sweep, .tether, .node-pulse, .halo-pulse, .scan-beam, .sonar-ring,
+      .drift-a, .drift-b, .drift-c, .drift-d, .caret, .btn-primary:hover::before,
+      .anchor-drop, .tether-slack, .tether-taut, .lock-meta, .chain-hold, .chain-name, .chain-locked,
+      .chain-draw-1, .chain-draw-2, .bind-drop, .cast-line, .cast-check { animation: none; }
+      .anchor-drop, .bind-drop, .tether-taut, .cast-check, .lock-meta, .chain-hold, .chain-name, .chain-locked { opacity: 1; transform: none; }
+      .tether-slack { opacity: 0.12; }
+      .chain-draw-1, .chain-draw-2, .cast-line { stroke-dashoffset: 0; opacity: 1; }
+      .theme-switch::before, .nav-links a::after, .btn, .path-pick, .logo-icon { transition: none; }
+      main section:not(.hero) .wrap { opacity: 1; transform: none; transition: none; }
+      .plasma { display: none !important; }
+      html { scroll-behavior: auto; }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      nav { background: var(--nav-bg); backdrop-filter: none; }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero-grid, .split-code, .compare, .cast-grid, .path-fork, .who-grid, .spec-strip,
+      .flow-board, .fork-board, .flow-split, .ledger-row { grid-template-columns: 1fr; }
+      .hero { min-height: auto; padding: 28px 0 36px; }
+      .hero-claim { white-space: normal; }
+      .hero-stack { display: block; }
+      .hero-lead { width: auto; min-width: 0; }
+      .hero-visual { width: 100%; aspect-ratio: 6 / 5; }
+      .compare-card + .compare-card, .hero-panel + .hero-panel { border-left: none; border-top: 1px solid var(--border); }
+      .spec-strip article { border-right: none; border-bottom: 1px solid var(--border); }
+      .flow-join { flex-direction: row; min-height: 0; min-width: 0; padding: 4px 0; }
+      .flow-join::before, .flow-join::after { width: 24px; height: 1px; flex: 1; min-height: 0; }
+      .fork-mid { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <canvas class="plasma"></canvas>
+  </div>
+
+  <nav>
+    <div class="wrap nav-inner">
+      <a class="logo" href="#">
+        <span class="logo-icon">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="4" r="2" fill="white"/><path d="M8 6V14M5 11L8 14L11 11" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </span>
+        AnchorLock
+      </a>
+      <ul class="nav-links">
+        <li><a href="#why">出了什么事</a></li>
+        <li><a href="#demo">看红变绿</a></li>
+        <li><a href="#cast">抛锚与收紧</a></li>
+        <li><a href="#install">安装</a></li>
+        <li><a href="#start">接到项目</a></li>
+      </ul>
+      <div class="nav-end">
+        <div class="theme-switch" role="group" aria-label="显示模式">
+          <button type="button" data-theme-set="day" aria-pressed="true">DAY</button>
+          <button type="button" data-theme-set="night" aria-pressed="false">NIGHT</button>
+        </div>
+        <a class="btn btn-primary btn-sm" href="#demo">看红变绿</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero" id="see">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1>AnchorLock</h1>
+          <div class="hero-stack">
+            <p class="hero-claim">AI Coding 时，Agent 越多，越需要同一块锚</p>
+            <p class="hero-lead">
+            产品、前端、后端、测试 Agent 可以分头推进，但不能各自发明字段。
+            AnchorLock 把名字钉死：名单是 <code>order_no</code>，写成 <code>orderId</code>，<strong>合并就停</strong>。
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#demo">看红变绿</a>
+            <a class="btn btn-ghost" href="#install">安装到我的仓</a>
+          </div>
+        </div>
+        <figure class="hero-visual" aria-label="产品、前端、后端、测试四个 Agent 系在同一锁定点">
+          <svg viewBox="0 0 480 400" role="img" shape-rendering="geometricPrecision">
+            <title>数字化锚：PM / FE / BE / QA 锁定到 order_no</title>
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="var(--plot-glow)" stop-opacity="var(--plot-bloom)"/>
+                <stop offset="100%" stop-color="var(--plot-glow)" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="sweep-fade" x1="240" y1="160" x2="310" y2="28" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="var(--plot-glow)" stop-opacity="0"/>
+                <stop offset="100%" stop-color="var(--plot-glow)" stop-opacity="0.42"/>
+              </linearGradient>
+              <marker id="chain-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M0 0L10 5L0 10Z" fill="var(--plot-glow)"/>
+              </marker>
+              <marker id="lock-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M0 0L10 5L0 10Z" fill="var(--plot-locked)"/>
+              </marker>
+            </defs>
+            <circle cx="240" cy="160" r="96" fill="url(#glow)"/>
+            <g class="graticule" fill="none" stroke="var(--plot-ring)">
+              <line x1="66" y1="160" x2="414" y2="160" stroke-width="0.4" opacity="0.13"/>
+              <line x1="240" y1="14" x2="240" y2="306" stroke-width="0.4" opacity="0.13"/>
+              <circle cx="240" cy="160" r="70" stroke-width="0.45" opacity="0.3"/>
+              <circle class="ring-spin" cx="240" cy="160" r="110" stroke-width="0.55" opacity="0.18" stroke-dasharray="1.2 27.6"/>
+              <circle class="ring-spin-rev" cx="240" cy="160" r="146" stroke-width="0.35" opacity="0.12" stroke-dasharray="1 37.2"/>
+              <g fill="var(--plot-label)" stroke="none" font-family="ui-monospace, monospace" font-size="7" letter-spacing="0.12em" opacity="0.55">
+                <text x="240" y="8" text-anchor="middle">000</text>
+                <text x="398" y="163">090</text>
+                <text x="240" y="316" text-anchor="middle">180</text>
+                <text x="66" y="163" text-anchor="end">270</text>
+              </g>
+            </g>
+            <circle cx="240" cy="160" r="44" fill="none" stroke="var(--plot-ring)" stroke-width="0.55" opacity="0.5"/>
+            <circle class="sonar-ring sonar-a" cx="240" cy="160" r="78"/>
+            <circle class="sonar-ring sonar-b" cx="240" cy="160" r="78"/>
+            <circle class="sonar-ring sonar-c" cx="240" cy="160" r="78"/>
+            <g class="sweep">
+              <path d="M240 160 L258 16 A148 148 0 0 0 222 16 Z" fill="url(#sweep-fade)" opacity="0.55"/>
+              <line x1="240" y1="160" x2="240" y2="14" stroke="var(--plot-hold)" stroke-width="0.65" stroke-linecap="round" opacity="0.45"/>
+            </g>
+            <circle class="ping-drop" cx="240" cy="160" r="18" fill="none" stroke="var(--plot-hold)" stroke-width="0.85" opacity="0"/>
+            <circle class="ping-drop-2" cx="240" cy="160" r="18" fill="none" stroke="var(--plot-glow)" stroke-width="0.55" opacity="0"/>
+            <circle class="ping-lock" cx="240" cy="160" r="18" fill="none" stroke="var(--plot-locked)" stroke-width="0.85" opacity="0"/>
+            <circle class="ping-lock-2" cx="240" cy="160" r="18" fill="none" stroke="var(--plot-locked)" stroke-width="0.55" opacity="0"/>
+            <g class="mode-line" font-family="ui-monospace, monospace">
+              <text x="20" y="24" fill="var(--plot-label)" font-size="8" letter-spacing="0.16em">MOORING SEQ</text>
+              <text class="mode-value" x="20" y="40" fill="var(--plot-text-locked)" font-size="10" letter-spacing="0.08em">LOCKED · order_no</text>
+            </g>
+            <g class="tethers" fill="none" stroke="var(--plot-glow)" stroke-width="0.7" stroke-linecap="round" stroke-dasharray="2 10">
+              <path data-tether="0" d="M240 160 C240 110 240 70 240 48"/>
+              <path data-tether="1" d="M240 160 C190 160 130 160 88 160"/>
+              <path data-tether="2" d="M240 160 C300 140 360 120 400 108"/>
+              <path data-tether="3" d="M240 160 C280 210 340 250 372 268"/>
+            </g>
+            <g transform="translate(240 160)">
+              <g class="anchor-drop glow-lock" fill="none" stroke="var(--plot-hex)" stroke-width="0.9">
+                <circle class="halo-pulse" r="18" stroke="var(--plot-glow)" stroke-width="0.6"/>
+                <polygon points="0,-16 14,-8 14,8 0,16 -14,8 -14,-8"/>
+                <circle r="3.2" fill="var(--plot-glow)" stroke="none" class="node-pulse"/>
+                <path d="M0 16 V30 M-7 24 L0 32 L7 24" stroke="var(--plot-hold)" stroke-width="0.9"/>
+              </g>
+            </g>
+            <g class="drift-c" data-node="0">
+              <path d="M240 38V34M240 58V62M230 48H226M250 48H254" stroke="var(--plot-drift)" stroke-width="0.6" opacity="0.55" fill="none"/>
+              <circle class="glow-drift" cx="240" cy="48" r="7" fill="none" stroke="var(--plot-drift)" stroke-width="0.7"/>
+              <circle cx="240" cy="48" r="1.8" fill="var(--plot-drift)"/>
+              <text x="252" y="44" fill="var(--plot-text-drift)" font-family="ui-monospace, monospace">PM · 订单编号</text>
+            </g>
+            <g class="drift-a" data-node="1">
+              <path d="M88 150V146M88 170V174M78 160H74M98 160H102" stroke="var(--plot-drift)" stroke-width="0.6" opacity="0.55" fill="none"/>
+              <circle class="glow-drift" cx="88" cy="160" r="7" fill="none" stroke="var(--plot-drift)" stroke-width="0.7"/>
+              <circle cx="88" cy="160" r="1.8" fill="var(--plot-drift)"/>
+              <text x="88" y="144" text-anchor="middle" fill="var(--plot-text-drift)" font-family="ui-monospace, monospace">FE · orderId</text>
+            </g>
+            <g class="drift-d" data-node="2">
+              <path d="M400 97V93M400 119V123M389 108H385M411 108H415" stroke="var(--plot-hold)" stroke-width="0.6" opacity="0.6" fill="none"/>
+              <circle class="halo-pulse" cx="400" cy="108" r="8" fill="none" stroke="var(--plot-hold)" stroke-width="0.6"/>
+              <circle class="glow-hold" cx="400" cy="108" r="3.4" fill="var(--plot-hold)"/>
+              <text x="318" y="100" fill="var(--plot-text-hold)" font-family="ui-monospace, monospace">BE · order_no</text>
+            </g>
+            <g class="drift-b" data-node="3">
+              <path d="M372 258V254M372 278V282M362 268H358M382 268H386" stroke="var(--plot-drift)" stroke-width="0.6" opacity="0.55" fill="none"/>
+              <circle class="glow-drift" cx="372" cy="268" r="7" fill="none" stroke="var(--plot-drift)" stroke-width="0.7"/>
+              <circle cx="372" cy="268" r="1.8" fill="var(--plot-drift)"/>
+              <text x="276" y="286" fill="var(--plot-text-drift)" font-family="ui-monospace, monospace">QA · 「单号」</text>
+            </g>
+            <g class="glow-chain" font-family="ui-monospace, monospace">
+              <text class="chain-hold" x="86" y="352" fill="var(--plot-text-lock)">HOLD</text>
+              <path class="chain-draw-1" d="M132 348H176" fill="none" stroke="var(--plot-glow)" stroke-width="0.75" marker-end="url(#chain-arrow)"/>
+              <text class="chain-name" x="186" y="352" fill="var(--plot-text-lock)">order_no</text>
+              <path class="chain-draw-2" d="M292 348H336" fill="none" stroke="var(--plot-locked)" stroke-width="0.75" marker-end="url(#lock-arrow)"/>
+              <text class="chain-locked" x="346" y="352" fill="var(--plot-text-locked)">LOCKED</text>
+            </g>
+          </svg>
+        </figure>
+      </div>
+    </section>
+
+    <div class="spec-strip" aria-label="问题、闸门、结果">
+      <article>
+        <div class="spec-k">01 NAME</div>
+        <div class="spec-v danger">各造一套名</div>
+      </article>
+      <article>
+        <div class="spec-k">02 GATE</div>
+        <div class="spec-v">合入时核对</div>
+      </article>
+      <article>
+        <div class="spec-k">03 HOLD</div>
+        <div class="spec-v ok">写偏即停</div>
+      </article>
+    </div>
+
+    <section id="why">
+      <div class="wrap">
+        <h2 class="section-title">每个 Agent 写的名字，单独看都对</h2>
+        <p class="section-desc">
+          你让它用下划线，这次听了；换一个对话、换一个同事的 Cursor，它又换成同义词。
+          Review 盯不过来，编译器不管，prompt 挡不住下一次。
+        </p>
+        <div class="ledger">
+          <div class="ledger-head"><span>SHARED INTENT</span><span>订单号 · 支付流水</span></div>
+          <div class="ledger-row">
+            <div class="ledger-who">FE AGENT</div>
+            <p>按前端习惯写成 <code>orderId</code>、<code>paymentId</code>。页面看着没问题。</p>
+          </div>
+          <div class="ledger-row">
+            <div class="ledger-who">BE AGENT</div>
+            <p>按库表习惯写成 <code>order_no</code>、<code>trade_no</code>。接口文档也这样。</p>
+          </div>
+          <div class="ledger-row">
+            <div class="ledger-who">QA AGENT</div>
+            <p>fixture 里直接用中文 key <code>「单号」</code>、<code>「支付单号」</code>。用例本地也能过。</p>
+          </div>
+          <div class="split-code">
+            <div class="hero-panel bad">
+              <div class="hero-panel-head"><span>合进去之后</span><span class="file">drift</span></div>
+              <pre><span class="c">// 同一个意思，四套名字</span>
+产品写的   「订单编号」
+前端 POST  { <span class="x">orderId</span>: "A10086" }
+后端在等    { <span class="ok">order_no</span>: ... }
+测试断言    { <span class="x">「单号」</span>: "A10086" }</pre>
+            </div>
+            <div class="hero-panel good">
+              <div class="hero-panel-head"><span>锚咬住之后</span><span class="file">hold</span></div>
+              <pre><span class="c">// 同一个意思，系在这一个名字上</span>
+{ "id": "<span class="ok">order_no</span>" }
+{ "id": "<span class="ok">trade_no</span>" }
+
+<span class="c">// 出现 orderId / order_sn / 「单号」→ 进不了主干</span></pre>
+            </div>
+          </div>
+        </div>
+        <p class="hero-one-liner">多角色可以分头写，契约必须同一块锚。写偏了，合并就停。</p>
+        <div class="compare" style="margin-top:28px">
+          <div class="compare-card">
+            <span class="compare-tag ok">你已经有的</span>
+            <h3>口头约定、接口文档、改 prompt</h3>
+            <p>人可以对齐一次。AI 第二天还能再发明一套近义词。文档不会在合并时失败。</p>
+          </div>
+          <div class="compare-card highlight">
+            <span class="compare-tag bad">缺的那一下</span>
+            <h3>合代码时查：这个名字在不在名单里</h3>
+            <p>名单里是 order_no，代码里写了 orderId 或 order_sn → 这条合并失败。没有「先合进去再说」。</p>
+          </div>
+        </div>
+        <div class="hero-actions" style="margin-top:24px">
+          <a class="btn btn-primary" href="#demo">看这条怎么失败</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="wrap">
+        <p class="kicker">LIVE CHECK</p>
+        <h2 class="section-title">名单是 order_no，代码写成 orderId → 失败</h2>
+        <p class="section-desc">还是上面那个订单号。不用先搞懂任何术语。跑这一条就能看见。</p>
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="terminal-dot r"></span>
+            <span class="terminal-dot y"></span>
+            <span class="terminal-dot g"></span>
+            <span class="terminal-title">npx @anchorlock/cli demo</span>
+          </div>
+          <div class="terminal-body">
+            <div class="dim"># 名单里写着：order_no、trade_no（aliases 含 orderId / order_sn）</div>
+            <div class="dim">$ npx @anchorlock/cli demo</div>
+            <div class="violation">fail  field-name gate  (2 issues)</div>
+            <div class="violation">  - "orderId" should be "order_no" (src/order.js)</div>
+            <div class="violation">  - "order_sn" should be "order_no" (src/order.js)</div>
+            <br>
+            <div class="dim"># 把代码改成名单里的名字，再跑同一条</div>
+            <div class="pass">ok  field-name gate passed  (2 names · 1 files)</div>
+            <div class="dim">$ <span class="caret" aria-hidden="true"></span></div>
+          </div>
+        </div>
+        <div class="hero-actions" style="margin-top:24px">
+          <a class="btn btn-primary" href="#install">这就是我要的，先装上</a>
+          <a class="btn btn-ghost" href="#cast">它凭什么能停</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="cast">
+      <div class="wrap">
+        <h2 class="section-title">两下钉同一块锚</h2>
+        <p class="section-desc">
+          船是这次要合进去的代码。锚是那一个机器名：只许 <code>order_no</code>。
+          没有锚，风会把每条船吹去不同的港。有锚不收紧，锚在水里，船照样漂。
+          这两下不是同义词：<strong>抛锚</strong>是写盘前的 MCP，<strong>收紧</strong>是合并前的 CLI，各对应一条命令。
+        </p>
+        <table class="mini-table" aria-label="抛锚和收紧分别是哪条命令">
+          <tr><th></th><th>何时</th><th>命令（记住这一列）</th></tr>
+          <tr><td><strong>抛锚</strong></td><td>Agent 正在写文件</td><td>SemanticAnchor MCP：<code>bind</code> / <code>verify_usage</code>（吃 <code>constraints.json</code>）</td></tr>
+          <tr><td><strong>收紧</strong></td><td>合进主干之前</td><td>本 CLI：<code>anchor check --contract … --src src</code></td></tr>
+        </table>
+        <p class="path-note" style="margin-bottom:28px"><code>anchor constraints --from</code> 不是抛锚，只是从 OpenAPI / pin 投影出抛锚要吃的那份 <code>constraints.json</code>。</p>
+        <div class="cast-grid">
+          <figure class="cast-photo" aria-label="抛锚与收紧的两层锁定">
+            <svg viewBox="0 0 360 320" role="img">
+              <title>写盘前 bind，合并前 check，同一锁定点</title>
+              <g fill="none" stroke="var(--plot-ring)" stroke-width="0.7">
+                <circle class="ring-spin" cx="180" cy="118" r="54" stroke-dasharray="1.5 9"/>
+                <circle cx="180" cy="118" r="28"/>
+              </g>
+              <g class="bind-drop">
+                <circle cx="180" cy="118" r="3.4" fill="var(--plot-glow)" class="node-pulse"/>
+                <text x="156" y="78" fill="var(--plot-hex)" font-size="9" font-family="ui-monospace, monospace">BIND</text>
+              </g>
+              <path class="cast-line" d="M180 146 V196" fill="none" stroke="var(--plot-glow)" stroke-width="0.75"/>
+              <g class="cast-check" fill="none" stroke="var(--plot-hold)" stroke-width="0.65">
+                <circle class="ring-spin-rev" cx="180" cy="228" r="46" stroke-dasharray="2 8"/>
+                <circle cx="180" cy="228" r="22"/>
+                <circle cx="180" cy="228" r="3.4" fill="var(--plot-hold)" stroke="none"/>
+                <text x="152" y="288" fill="var(--plot-hold)" font-size="9" font-family="ui-monospace, monospace">CHECK</text>
+              </g>
+            </svg>
+          </figure>
+          <div class="cast-stack">
+            <div class="cast-item">
+              <span class="compare-tag ok">抛锚 · SemanticAnchor <code>bind</code> / <code>verify_usage</code></span>
+              <h3>写盘前：先对照契约再落盘</h3>
+              <p>Agent 要写文件时，编辑器里的 SemanticAnchor 跑 <code>bind</code> / <code>verify_usage</code>。名字不对当场改。这不是 <code>anchor check</code>，本 CLI 只负责准备它要吃的 <code>constraints.json</code>。</p>
+            </div>
+            <div class="cast-item">
+              <span class="compare-tag ok">收紧 · <code>anchor check</code></span>
+              <h3>合并前：再扫一遍源码</h3>
+              <p>合进主干前跑 <code>anchor check --contract … --src src</code>。抛锚漏了、<code>bind</code> 没绑、有人用手改飘了，卡在这里进不了主干。CI 挂的也是这一条。</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero-actions" style="margin-top:24px">
+          <a class="btn btn-primary" href="#install">装进仓</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <p class="kicker">QUICK START</p>
+        <h2 class="section-title">装进仓。一次就够。</h2>
+        <p class="section-desc">
+          需要 Node 18 +。本 CLI 做的是<strong>收紧</strong>：<code>anchor check</code> 只查字段名。写盘前的<strong>抛锚</strong>是 SemanticAnchor 的 <code>bind</code> / <code>verify_usage</code>，吃同一份 <code>constraints.json</code>。
+        </p>
+        <div class="compose-list">
+          <div class="compose-card">
+            <div class="compose-num">01</div>
+            <div>
+              <h3>装进你要锁的那个仓</h3>
+              <p>在前端仓、后端仓或测试仓里执行 <code>npm i -D @anchorlock/cli</code>。命令是 <code>anchor</code>。全公司只锁一份契约，不要每个仓各 init 一份。</p>
+            </div>
+          </div>
+          <div class="compose-card">
+            <div class="compose-num">02</div>
+            <div>
+              <h3>一次 <code>init</code></h3>
+              <p>装上 Agent 协议和示例名单。之后起草、写代码、跑闸都由 AI 串，不必再跑展示命令。</p>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top:28px">
+          <pre><span class="comment"># 装进你要锁的那个仓 · 只做一次</span>
+<span class="cmd">npm i -D @anchorlock/cli</span>
+<span class="cmd">npx anchor init</span></pre>
+        </div>
+        <div class="hero-actions" style="margin-top:24px">
+          <a class="btn btn-primary" href="#start">然后对 AI 说话</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="start">
+      <div class="wrap">
+        <p class="kicker">HOOK INTO YOUR REPO</p>
+        <h2 class="section-title">上手。人只说需求，Agent 串流程。</h2>
+        <p class="section-desc">
+          不需要需求仓，不用手改 JSON，不必猜路径。上面装过一次之后，起草名单、写代码、跑闸都由你的 AI 完成；人只保留一个动作——对名单点头。
+        </p>
+        <div class="compose-list">
+          <div class="compose-card">
+            <div class="compose-num">01</div>
+            <div>
+              <h3>对 AI 说人话，不碰 JSON</h3>
+              <p>「实现订单查询，锁住订单号，别名 <code>orderId</code> / <code>order_sn</code>」。Agent 起草名单、列给你确认、用规范名写代码。</p>
+            </div>
+          </div>
+          <div class="compose-card">
+            <div class="compose-num">02</div>
+            <div>
+              <h3>交付前收紧：跑 <code>anchor check</code></h3>
+              <p>这就是收紧。Agent 跑 <code>anchor check --contract constraints.json</code>。红了它改代码，不改名单。其它字段先不管；合主干要「名单外也失败」时再加 <code>--strict</code>。</p>
+            </div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top:28px">
+          <pre><span class="comment"># 对你的 AI 说（不是又一条要记的命令）：</span>
+<span class="comment">#   「实现订单查询，锁住订单号，别名 orderId / order_sn」</span>
+<span class="comment"># Agent 写名单、写代码，并在交付前收紧：</span>
+<span class="cmd">npx anchor check --contract</span> constraints.json</pre>
+        </div>
+        <p class="path-note">名字的最终决定权在人：Agent 起草的名单要在对话里过你一眼。闸长什么样见本页上面的终端，不必另跑 <code>demo</code>。有 OpenAPI 再往下钉说明书。</p>
+
+        <h2 class="section-title" style="margin-top:56px">以后：有没有现成的接口文档？</h2>
+        <p class="section-desc">
+          全公司只锁定一份机器名。有 OpenAPI 走路 A，没有就继续用上面那份 <code>constraints.json</code>。不要两条一起走。
+        </p>
+
+        <figure class="flow" aria-label="两条路怎么分">
+          <div class="fork-board">
+            <div class="fork-q"><div class="flow-box file">你已经有 OpenAPI 吗？</div></div>
+            <div class="fork-arm">
+              <div class="flow-arrow">有 → 路 A</div>
+              <div class="flow-stack">
+                <div class="flow-box">构建导出 <strong>openapi.json</strong></div>
+                <div class="flow-box"><strong>anchor pin</strong> 写出指纹</div>
+                <div class="flow-box ok">收紧 · <code>anchor check</code><small>要抛锚先投影再 bind</small></div>
+              </div>
+            </div>
+            <div class="fork-mid"></div>
+            <div class="fork-arm">
+              <div class="flow-arrow">没有 → 路 B</div>
+              <div class="flow-stack">
+                <div class="flow-box">一处 <strong>init --from-code</strong></div>
+                <div class="flow-box">自动起草 <strong>constraints.json</strong></div>
+                <div class="flow-box ok">人确认后：收紧走 check，抛锚走 bind</div>
+              </div>
+            </div>
+          </div>
+          <figcaption class="flow-caption">中间没有第三条路。不要「前端走 B、后端走 A」——两边对的必须是同一份契约。</figcaption>
+        </figure>
+
+        <div class="path-fork">
+          <a class="path-pick rec" href="#path-a">
+            <div class="path-pick-kicker">PATH A</div>
+            <h3>有 OpenAPI</h3>
+            <p>后端已经有接口说明书。不要再手写字段清单。钉住这次发版挂出来的那一份，前端、后端、测试都对它扫。</p>
+            <span class="path-pick-go">看路 A 怎么做 →</span>
+          </a>
+          <a class="path-pick" href="#path-b">
+            <div class="path-pick-kicker">PATH B</div>
+            <h3>没有 OpenAPI</h3>
+            <p>继续用上面那份人手改过的 <code>constraints.json</code>。不要对全仓 <code>init --from-code</code>。名字多了往文件里加 unit。</p>
+            <span class="path-pick-go">看路 B 怎么做 →</span>
+          </a>
+        </div>
+
+        <div class="path-how" id="path-a">
+          <div class="path-how-head">
+            <span class="path-mark">A</span>
+            <h3>有接口文档：钉住发版说明书</h3>
+          </div>
+          <p class="section-desc">OpenAPI 由后端<strong>构建导出</strong>（Springdoc / Nest / FastAPI…），不要手写。前端不去 clone 后端仓，也不对着线上最新的 <code>/v3/api-docs</code> 扫。</p>
+          <div class="compare" style="margin-bottom:24px">
+            <div class="compare-card">
+              <span class="compare-tag bad">不要这样</span>
+              <h3>每个仓自己抄一份名单</h3>
+              <p>前端抄出 orderId，后端抄出 order_no。两边 check 都绿，联调还是炸。路 A 不要各 pin 各的。</p>
+            </div>
+            <div class="compare-card highlight">
+              <span class="compare-tag ok">要这样</span>
+              <h3>三边都指向同一份发版说明书</h3>
+              <p>后端打 tag，把说明书挂到发版页。前端只提交 pin：url 填下载链接。check 自己按 url 拉文件。</p>
+            </div>
+          </div>
+          <figure class="flow" aria-label="路 A 流向">
+            <div class="flow-board">
+              <div>
+                <div class="flow-lane">后端仓</div>
+                <div class="flow-stack">
+                  <div class="flow-box">构建导出说明书<small>框架抽出 openapi.json · 不手写</small></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-box">打 tag，CI 挂到发版页<small>git tag v1.4.0</small></div>
+                  <div class="flow-arrow">↓</div>
+                  <div class="flow-box file">anchor pin 写出指纹<small>pin.json · 不用手抄 hash</small></div>
+                </div>
+              </div>
+              <div class="flow-join"><span>https 下载<br>不是 clone</span></div>
+              <div>
+                <div class="flow-lane">前端仓</div>
+                <div class="flow-stack">
+                  <div class="flow-box file">只提交 pin.json<small>url + hash + version</small></div>
+                  <div class="flow-arrow">↓ 同一份说明书</div>
+                  <div class="flow-split">
+                    <div class="flow-box ok">收紧<small>anchor check --contract pin.json --src src</small></div>
+                    <div class="flow-box ok">抛锚<small>constraints --from → SA bind / verify_usage</small></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <figcaption class="flow-caption">左边产出<strong>一份钉死的说明书</strong>，右边只记「去哪下、指纹是多少」。收紧：<code>anchor check --contract pin.json --src src</code>，自己按 url 拉文件。抛锚：先 <code>anchor constraints --from</code> 投影成 <code>constraints.json</code>，再交给 SemanticAnchor 的 <code>bind</code> / <code>verify_usage</code>。</figcaption>
+          </figure>
+          <div class="who-grid">
+            <div class="who-card">
+              <h4>后端仓做什么</h4>
+              <ol>
+                <li>构建导出 <code>openapi.json</code>（框架插件，不手写）</li>
+                <li>打 <strong>tag</strong>，CI 把文件挂到这次 Release</li>
+                <li>打开发版页，复制「下载附件」的 https</li>
+                <li><code>anchor pin --from dist/openapi.json --url … --tag v1.4.0 -o dist/order.pin.json</code>，把这份 pin 发给前端</li>
+              </ol>
+            </div>
+            <div class="who-card">
+              <h4>前端仓做什么</h4>
+              <ol>
+                <li>把收到的 <code>order.pin.json</code> 放进 <code>contracts/</code> 并提交（不要手抄 hash，也不要把整份 OpenAPI 提交进来）</li>
+                <li>收紧：<code>anchor check --contract contracts/order.pin.json --src src</code>（对照说明书扫代码）</li>
+                <li>抛锚：先 <code>anchor constraints --from contracts/order.pin.json -o constraints.json</code>，再把 SemanticAnchor 指向它（MCP <code>bind</code> / <code>verify_usage</code>）</li>
+                <li>CI 挂同一条收紧命令，加上 <code>--require-hash</code></li>
+              </ol>
+            </div>
+          </div>
+          <p class="section-desc" style="margin-top:8px">pin 只记住说明书在哪。<code>check</code> 才是闸：拿那份说明书对照<strong>你仓库里的代码</strong>。字段名对不上，这条命令失败，合不进主干。</p>
+          <div class="compose-list" style="margin:8px 0 24px">
+            <div class="compose-card">
+              <div class="compose-num">01</div>
+              <div>
+                <h3>找到那一版说明书</h3>
+                <p><code>--contract contracts/order.pin.json</code>：读 pin 里的下载地址和指纹，拉下 <code>v1.4.0</code> 的 <code>openapi.json</code>。hash 对不上就停，不拿错文件继续扫。</p>
+              </div>
+            </div>
+            <div class="compose-card">
+              <div class="compose-num">02</div>
+              <div>
+                <h3>抽出说明书上的字段名</h3>
+                <p>从 OpenAPI 的 schema 属性名得到这份契约认的名字（例如 <code>order_no</code>）。这就是「对」的那一份，前端不另编名单。</p>
+              </div>
+            </div>
+            <div class="compose-card">
+              <div class="compose-num">03</div>
+              <div>
+                <h3>扫 <code>src/</code>，对不上就红</h3>
+                <p><code>--src src</code> 只看你的业务代码，不看 <code>node_modules</code>。代码里写了 <code>orderId</code>、<code>order_sn</code>，说明书是 <code>order_no</code> → 命令退出码非 0。Agent 改代码对齐说明书，不改 pin。</p>
+              </div>
+            </div>
+          </div>
+          <div class="code-block">
+            <pre><span class="comment"># ── 后端仓 ── 有 dist/openapi.json。打 tag，算出指纹，把 pin 发给前端</span>
+<span class="cmd">tag=</span>"v1.4.0"
+<span class="cmd">git tag</span> "$tag"
+<span class="cmd">git push origin</span> "refs/tags/$tag"
+<span class="comment"># CI 把 openapi.json 挂到这次发版页，复制「下载附件」的 https</span>
+<span class="cmd">anchor pin --from</span> dist/openapi.json \
+  <span class="cmd">--url</span> "https://git.example.com/group/order-api/-/releases/v1.4.0/downloads/openapi.json" \
+  <span class="cmd">--tag</span> "$tag" <span class="cmd">-o</span> dist/order.pin.json
+<span class="comment"># 把 dist/order.pin.json 交给前端（发版附件或拷贝）。前端不要自己再 pin</span>
+
+<span class="comment"># 收紧 · 合并前：拿说明书对照 src 里的字段名</span>
+<span class="comment"># git add contracts/order.pin.json &amp;&amp; git commit</span>
+<span class="cmd">anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src
+<span class="comment"># 红了：src 里的字段名和说明书不一致。改代码，不要改 pin。</span>
+
+<span class="comment"># 抛锚前先投影。真正的抛锚是 SemanticAnchor 的 bind / verify_usage（不是这条 CLI）</span>
+<span class="cmd">anchor constraints --from</span> contracts/order.pin.json <span class="cmd">-o</span> constraints.json</pre>
+          </div>
+          <p class="path-note">pin 相当于契约的 lockfile：记下「去哪下、指纹是多少」。前端提交它，是为了让本机和 CI 都锁在同一版说明书上，而不是 submodule 后端仓、也不是对着线上 <code>/v3/api-docs</code> 扫。改字段名：后端先打新 tag、重算 pin → 前端换 pin 再改业务代码。</p>
+        </div>
+
+        <div class="path-how" id="path-b">
+          <div class="path-how-head">
+            <span class="path-mark">B</span>
+            <h3>没有 OpenAPI：从代码自动起草</h3>
+          </div>
+          <p class="section-desc">没有接口文档，就不要手抄字段清单。命令扫现有源码，把驼峰/下划线收成一份 <code>constraints.json</code>。人只确认，不从空白填起。</p>
+          <figure class="flow" aria-label="路 B 流向">
+            <div class="flow-board">
+              <div>
+                <div class="flow-lane">只扫一次</div>
+                <div class="flow-stack">
+                  <div class="flow-box">现有源码<small>orderId / order_sn / 「单号」…</small></div>
+                  <div class="flow-arrow">↓ 自动</div>
+                  <div class="flow-box file">起草 constraints.json<small>anchor init --from-code src</small></div>
+                  <div class="flow-arrow">↓ 人确认</div>
+                  <div class="flow-box">删掉不该锁的名字<small>函数名、框架词</small></div>
+                </div>
+              </div>
+              <div class="flow-join"><span>同一份<br>不要各扫各的</span></div>
+              <div>
+                <div class="flow-lane">各仓只查</div>
+                <div class="flow-stack">
+                  <div class="flow-split">
+                    <div class="flow-box ok">收紧<small>anchor check --contract constraints.json --src src</small></div>
+                    <div class="flow-box ok">抛锚<small>SA_CONSTRAINTS + bind / verify_usage</small></div>
+                  </div>
+                  <div class="flow-box warn">不要再 init<small>各仓各扫一份 = 没锁</small></div>
+                </div>
+              </div>
+            </div>
+            <figcaption class="flow-caption">左边<strong>自动起草</strong>驼峰/下划线。<code>orderId</code> 会收成 <code>order_id</code>，不会猜成 <code>order_no</code>。人把 <code>id</code> 改成要锁的名字，近义词写进 aliases。右边都指这一份。</figcaption>
+          </figure>
+          <div class="who-grid">
+            <div class="who-card">
+              <h4>谁来扫（只做一次）</h4>
+              <ol>
+                <li><code>anchor init --from-code src</code> 自动写出 <code>constraints.json</code></li>
+                <li>打开文件：删掉函数名、框架词、一次性变量</li>
+                <li>确认推荐的 snake_case；近义词不会自动合并，要把 <code>id</code> 改成 <code>order_no</code>，并把 <code>orderId</code> / <code>order_sn</code> 写进 <code>aliases</code></li>
+                <li>有枚举再补 <code>values</code>。不要另起一份 txt</li>
+              </ol>
+            </div>
+            <div class="who-card">
+              <h4>其它仓怎么用</h4>
+              <ol>
+                <li>拿到<strong>同一份</strong>已确认的文件，不要再 <code>init</code></li>
+                <li>收紧：<code>anchor check --contract constraints.json --src src</code></li>
+                <li>抛锚：<code>SA_CONSTRAINTS=./constraints.json</code>，SemanticAnchor 跑 <code>bind</code> / <code>verify_usage</code></li>
+                <li>新字段先改这一份，再写代码。各仓各扫各的，等于没锁</li>
+              </ol>
+            </div>
+          </div>
+          <div class="code-block">
+            <pre><span class="comment"># 只在一处执行。不要前端扫一次、后端再扫一次</span>
+<span class="cmd">anchor init --from-code</span> src
+<span class="comment"># 自动写出 constraints.json。人只删不该锁的，并把 id 改成要锁的名字</span>
+{
+  "id": "order_no",
+  "aliases": ["orderId", "order_sn", "订单编号", "单号"]
+}
+
+<span class="cmd">anchor check --contract</span> constraints.json <span class="cmd">--src</span> src
+<span class="comment"># 上面是收紧。抛锚：SA_CONSTRAINTS=./constraints.json ，再跑 SemanticAnchor bind / verify_usage</span></pre>
+          </div>
+          <p class="path-note">连代码都没有、要从零发明字段时，才用 <code>anchor constraints --init</code> 出空白模板。那是例外，不是路 B 的主路径。</p>
+        </div>
+
+        <div class="path-how" id="ci">
+          <div class="path-how-head">
+            <span class="path-mark">CI</span>
+            <h3>挂到合并检查</h3>
+          </div>
+          <p class="section-desc">和跑测试同一位置。失败就不能合。这里挂的是<strong>收紧</strong>：<code>anchor check</code>。抛锚（<code>bind</code> / <code>verify_usage</code>）发生在编辑器写盘时，不替代这一条。</p>
+          <div class="code-block">
+            <pre><span class="comment"># 收紧 · 路 A（CI 挂这条，合主干前再拦一次）</span>
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--require-hash</span>
+<span class="comment"># 收紧 · 路 B</span>
+<span class="cmd">npx anchor check --contract</span> constraints.json <span class="cmd">--src</span> src</pre>
+          </div>
+        </div>
+
+        <h2 class="section-title">这条 CLI 不做抛锚</h2>
+        <p class="section-desc">抛锚和收紧必须分开记。本包装的是收紧；抛锚是另一个工具，吃同一份契约。</p>
+        <table class="mini-table">
+          <tr><th>你想做的</th><th>那一步叫</th><th>对应命令</th></tr>
+          <tr><td>合代码前发现 orderId 写飘了</td><td>收紧</td><td><code>anchor check --contract … --src src</code></td></tr>
+          <tr><td>AI 正在写文件时先对照契约</td><td>抛锚</td><td>SemanticAnchor MCP <code>bind</code> / <code>verify_usage</code></td></tr>
+          <tr><td>有 OpenAPI，要给抛锚准备文件</td><td>投影（不是抛锚）</td><td><code>anchor constraints --from pin.json -o constraints.json</code></td></tr>
+          <tr><td>从需求文档编出整份接口包</td><td>进阶</td><td>spec-forge，不在这一页</td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span class="footer-copy">ANCHORLOCK · HOLD THE CONTRACT</span>
+      <ul class="footer-links">
+        <li><a href="#cast">抛锚与收紧</a></li>
+        <li><a href="#install">安装</a></li>
+        <li><a href="#start">接到项目</a></li>
+        <li><a href="https://www.npmjs.com/package/@anchorlock/cli">npm</a></li>
+        <li><a href="https://www.npmjs.com/package/@keelforge/spec-forge">spec-forge</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var plasmaTheme = null;
+      function themePalette(theme) {
+        if (theme === "night") {
+          return {
+            paper: [0.047, 0.051, 0.063],
+            blue: [0.176, 0.243, 0.431],
+            foam: [0.90, 0.92, 0.96],
+            deep: [0.420, 0.561, 0.941]
+          };
+        }
+        return {
+          paper: [0.976, 0.973, 0.973],
+          blue: [0.545, 0.655, 0.878],
+          foam: [1.0, 1.0, 1.0],
+          deep: [0.196, 0.396, 0.847]
+        };
+      }
+      function apply(theme) {
+        root.setAttribute("data-theme", theme);
+        try { localStorage.setItem("anchorlock-theme", theme); } catch (e) {}
+        document.querySelectorAll("[data-theme-set]").forEach(function (btn) {
+          btn.setAttribute("aria-pressed", btn.getAttribute("data-theme-set") === theme ? "true" : "false");
+        });
+        if (plasmaTheme) plasmaTheme(theme);
+      }
+      apply(root.getAttribute("data-theme") || "day");
+      document.querySelectorAll("[data-theme-set]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          apply(btn.getAttribute("data-theme-set"));
+        });
+      });
+
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function straightenMooring() {
+        var svg = document.querySelector(".hero-visual svg");
+        if (!svg) return;
+        var rest = [[240, 48], [88, 160], [400, 108], [372, 268]];
+        svg.querySelectorAll("[data-tether]").forEach(function (path, i) {
+          var n = rest[i];
+          if (n) path.setAttribute("d", "M240 160L" + n[0] + " " + n[1]);
+        });
+        var tethers = svg.querySelector(".tethers");
+        if (tethers) {
+          tethers.removeAttribute("stroke-dasharray");
+          tethers.setAttribute("stroke-width", "0.85");
+        }
+      }
+      if (reduce) {
+        straightenMooring();
+        return;
+      }
+      root.classList.add("motion-ok");
+      var t0 = performance.now();
+
+      (function startPlasma() {
+        var canvas = document.querySelector(".plasma");
+        if (!canvas) return;
+        var gl = canvas.getContext("webgl", { alpha: false, antialias: false, premultipliedAlpha: false });
+        if (!gl) return;
+
+        function compile(type, src) {
+          var sh = gl.createShader(type);
+          gl.shaderSource(sh, src);
+          gl.compileShader(sh);
+          if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) return null;
+          return sh;
+        }
+
+        var vs = compile(gl.VERTEX_SHADER,
+          "attribute vec2 a_pos; void main(){ gl_Position = vec4(a_pos,0.0,1.0); }");
+        var fs = compile(gl.FRAGMENT_SHADER, [
+          "precision mediump float;",
+          "uniform float u_time;",
+          "uniform vec2 u_resolution;",
+          "uniform vec3 u_paper;",
+          "uniform vec3 u_blue;",
+          "uniform vec3 u_foam;",
+          "uniform vec3 u_deep;",
+          "void main() {",
+          "  vec2 uv = gl_FragCoord.xy / u_resolution;",
+          "  float tt = u_time * 0.4;",
+          "  float v = sin(uv.x*10.0 + tt) + sin(uv.y*10.0 + tt*1.3) + sin((uv.x+uv.y)*8.0 + tt*0.7);",
+          "  v = v / 3.0;",
+          "  float r = 0.5 + 0.5 * sin(v * 3.14);",
+          "  float g = 0.5 + 0.5 * sin(v * 3.14 + 2.0);",
+          "  float b = 0.5 + 0.5 * sin(v * 3.14 + 4.0);",
+          "  vec3 col = mix(u_paper, u_blue, r);",
+          "  col = mix(col, u_foam, g * 0.42);",
+          "  col = mix(col, u_deep, b * 0.14);",
+          "  gl_FragColor = vec4(col, 1.0);",
+          "}"
+        ].join("\n"));
+        if (!vs || !fs) return;
+
+        var prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        var loc = gl.getAttribLocation(prog, "a_pos");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+        var uTime = gl.getUniformLocation(prog, "u_time");
+        var uRes = gl.getUniformLocation(prog, "u_resolution");
+        var uPaper = gl.getUniformLocation(prog, "u_paper");
+        var uBlue = gl.getUniformLocation(prog, "u_blue");
+        var uFoam = gl.getUniformLocation(prog, "u_foam");
+        var uDeep = gl.getUniformLocation(prog, "u_deep");
+
+        function setPalette(theme) {
+          var p = themePalette(theme);
+          gl.useProgram(prog);
+          gl.uniform3fv(uPaper, p.paper);
+          gl.uniform3fv(uBlue, p.blue);
+          gl.uniform3fv(uFoam, p.foam);
+          gl.uniform3fv(uDeep, p.deep);
+        }
+        plasmaTheme = setPalette;
+        setPalette(root.getAttribute("data-theme") || "day");
+
+        function resize() {
+          var dpr = Math.min(window.devicePixelRatio || 1, 1.5) * 0.42;
+          var w = Math.max(2, Math.floor(window.innerWidth * dpr));
+          var h = Math.max(2, Math.floor(window.innerHeight * dpr));
+          if (canvas.width === w && canvas.height === h) return;
+          canvas.width = w;
+          canvas.height = h;
+          gl.viewport(0, 0, w, h);
+          gl.uniform2f(uRes, w, h);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        canvas.classList.add("is-on");
+        if (canvas.parentElement) canvas.parentElement.classList.add("has-plasma");
+        var running = true;
+        document.addEventListener("visibilitychange", function () {
+          running = document.visibilityState !== "hidden";
+        });
+        function frame(now) {
+          if (running) {
+            gl.uniform1f(uTime, (now - t0) / 1000);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      })();
+
+      function bindSpot(el) {
+        el.addEventListener("pointermove", function (e) {
+          var r = el.getBoundingClientRect();
+          el.style.setProperty("--mx", (((e.clientX - r.left) / r.width) * 100).toFixed(2) + "%");
+          el.style.setProperty("--my", (((e.clientY - r.top) / r.height) * 100).toFixed(2) + "%");
+        });
+      }
+      document.querySelectorAll(".btn-primary, .ledger, .compare, .path-pick, .terminal, .who-card").forEach(bindSpot);
+
+      (function moor() {
+        var svg = document.querySelector(".hero-visual svg");
+        if (!svg) return;
+        var paths = svg.querySelectorAll("[data-tether]");
+        var nodes = [
+          { el: svg.querySelector('[data-node="0"]'), x: 240, y: 48, phase: 0.2 },
+          { el: svg.querySelector('[data-node="1"]'), x: 88, y: 160, phase: 1.1 },
+          { el: svg.querySelector('[data-node="2"]'), x: 400, y: 108, phase: 2.4 },
+          { el: svg.querySelector('[data-node="3"]'), x: 372, y: 268, phase: 3.3 }
+        ];
+        var drop = svg.querySelector(".anchor-drop");
+        var tethers = svg.querySelector(".tethers");
+        var modeValue = svg.querySelector(".mode-value");
+        var pingDrop = svg.querySelector(".ping-drop");
+        var pingDrop2 = svg.querySelector(".ping-drop-2");
+        var pingLock = svg.querySelector(".ping-lock");
+        var pingLock2 = svg.querySelector(".ping-lock-2");
+        var CX = 240, CY = 160, BEAT = 16000;
+        var prevP = 0, pingDropT = -1, pingLockT = -1, modeText = "";
+
+        function modeFor(p) {
+          if (p < 0.14) return ["DRIFT", "var(--plot-text-drift)"];
+          if (p < 0.32) return ["ANCHOR DOWN", "var(--plot-text-hold)"];
+          if (p < 0.46) return ["TAKING UP SLACK", "var(--plot-text-hold)"];
+          if (p < 0.82) return ["LOCKED · order_no", "var(--plot-text-locked)"];
+          return ["RELEASE", "var(--plot-text-drift)"];
+        }
+        function renderPing(el, startT, now, dur, maxR, peak) {
+          if (!el) return;
+          if (startT < 0) { el.setAttribute("opacity", "0"); return; }
+          var q = (now - startT) / dur;
+          if (q < 0 || q >= 1) { el.setAttribute("opacity", "0"); return; }
+          var e = 1 - (1 - q) * (1 - q);
+          el.setAttribute("r", (18 + (maxR - 18) * e).toFixed(1));
+          el.setAttribute("opacity", ((peak || 0.88) * (1 - q)).toFixed(3));
+        }
+
+        function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+        function ease(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+        function tautK(p) {
+          if (p < 0.32) return 0;
+          if (p < 0.46) return ease((p - 0.32) / 0.14);
+          if (p < 0.82) return 1;
+          return 1 - ease((p - 0.82) / 0.18);
+        }
+        function dropY(p) {
+          if (p < 0.14) return { y: -38, o: 0 };
+          if (p < 0.24) {
+            var k = ease((p - 0.14) / 0.1);
+            return { y: -38 + 41 * k, o: k };
+          }
+          if (p < 0.3) {
+            var k2 = ease((p - 0.24) / 0.06);
+            return { y: 3 - 3 * k2, o: 1 };
+          }
+          if (p < 0.8) return { y: 0, o: 1 };
+          var k3 = ease((p - 0.8) / 0.2);
+          return { y: -28 * k3, o: 1 - k3 };
+        }
+        function pathD(x0, y0, x1, y1, sea, phase, amp, k) {
+          if (k >= 1) return "M" + x0 + " " + y0 + "L" + x1 + " " + y1;
+          var dx = x1 - x0, dy = y1 - y0;
+          var len = Math.hypot(dx, dy) || 1;
+          var nx = -dy / len, ny = dx / len;
+          var w = Math.sin(sea + phase) * amp * (1 - k);
+          var w2 = Math.cos(sea * 0.71 + phase * 1.35) * amp * 0.62 * (1 - k);
+          if (k > 0.72) {
+            return "M" + x0 + " " + y0 + "L" + x1 + " " + y1;
+          }
+          return "M" + x0 + " " + y0 +
+            "C" + (x0 + dx * 0.32 + nx * w) + " " + (y0 + dy * 0.32 + ny * w) + " " +
+            (x0 + dx * 0.68 + nx * w2) + " " + (y0 + dy * 0.68 + ny * w2) + " " +
+            x1 + " " + y1;
+        }
+
+        function frame(now) {
+          var p = ((now - t0) % BEAT) / BEAT;
+          var k = tautK(p);
+          var d = dropY(p);
+          var sea = now / 900;
+          if (drop) {
+            drop.style.transform = "translateY(" + d.y + "px)";
+            drop.style.opacity = String(d.o);
+          }
+          nodes.forEach(function (n, i) {
+            if (!n.el) return;
+            var ox = (1 - k) * (Math.sin(sea * 0.92 + n.phase) * 6.5 + Math.sin(sea * 1.55 + n.phase) * 2);
+            var oy = (1 - k) * (Math.cos(sea * 0.78 + n.phase * 0.9) * 5.5);
+            n.el.style.transform = "translate(" + ox + "px," + oy + "px)";
+            n._x = n.x + ox;
+            n._y = n.y + oy;
+          });
+          var ax = CX, ay = CY + d.y;
+          paths.forEach(function (path, i) {
+            var n = nodes[i];
+            if (!n) return;
+            path.setAttribute("d", pathD(ax, ay, n._x, n._y, sea, n.phase, 18, k));
+          });
+          if (tethers) {
+            tethers.classList.toggle("is-taut", k > 0.72);
+            tethers.style.strokeDasharray = k > 0.72 ? "none" : "2 " + (2 + 9 * (1 - k)).toFixed(1);
+            tethers.style.strokeWidth = (0.7 + 0.2 * k).toFixed(2);
+          }
+          if (prevP < 0.24 && p >= 0.24) pingDropT = now;
+          if (prevP < 0.46 && p >= 0.46) pingLockT = now;
+          prevP = p;
+          renderPing(pingDrop, pingDropT, now, 1800, 128, 0.55);
+          renderPing(pingDrop2, pingDropT + 280, now, 1800, 128, 0.35);
+          renderPing(pingLock, pingLockT, now, 2000, 152, 0.55);
+          renderPing(pingLock2, pingLockT + 320, now, 2000, 152, 0.35);
+          if (modeValue) {
+            var m = modeFor(p);
+            if (m[0] !== modeText) {
+              modeText = m[0];
+              modeValue.textContent = m[0];
+              modeValue.setAttribute("fill", m[1]);
+            }
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      })();
+
+      if ("IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) entry.target.classList.add("is-in");
+          });
+        }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+        document.querySelectorAll("main section:not(.hero)").forEach(function (sec) { io.observe(sec); });
+      } else {
+        document.querySelectorAll("main section:not(.hero)").forEach(function (sec) { sec.classList.add("is-in"); });
+      }
+    })();
+  </script>
+</body>
+</html>

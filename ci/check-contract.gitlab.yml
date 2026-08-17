@@ -1,0 +1,12 @@
+# 消费仓：对照钉死的契约扫源码（GitLab）
+#
+# 提交 contracts/order.pin.json。私有 Release 把只读 token 放进 CI 变量 ANCHOR_CONTRACT_TOKEN。
+
+check-contract:
+  stage: test
+  image: node:20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - npx --yes @anchorlock/cli check --contract contracts/order.pin.json --src src --require-hash

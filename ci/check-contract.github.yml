@@ -1,0 +1,25 @@
+# 消费仓：对照钉死的契约扫源码
+#
+# 提交 contracts/order.pin.json（url + hash + version，可选 path）。
+# 不要对生产 /v3/api-docs 扫。私有制品把只读 token 放进 ANCHOR_CONTRACT_TOKEN 或 SPEC_CONTRACT_TOKEN。
+
+name: check-contract
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  field-names:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Field-name gate
+        env:
+          ANCHOR_CONTRACT_TOKEN: ${{ secrets.ANCHOR_CONTRACT_TOKEN }}
+          SPEC_CONTRACT_TOKEN: ${{ secrets.SPEC_CONTRACT_TOKEN }}
+        run: npx --yes @anchorlock/cli check --contract contracts/order.pin.json --src src --require-hash
