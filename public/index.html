@@ -17,7 +17,7 @@
   <title>AnchorLock - AI Coding 时，Agent 越多，越需要同一块锚</title>
   <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-400-normal.woff2" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-600-normal.woff2" />
-  <meta name="description" content="产品、前端、后端、测试 Agent 可以分头推进，但不能各自发明字段、结构和值域。Anchorlock 把业务契约锚住：字段叫什么、结构怎么长、哪些值合法。写偏了，合并就停。" />
+  <meta name="description" content="前端/客户端对照后端钉死的 OpenAPI 收紧字段名。契约来自发版说明书，不是编码 Agent 根据需求编的名单。写偏了，合并就停。" />
   <style>
     @font-face {
       font-family: "Geist";
@@ -678,6 +678,7 @@
     .compose-num { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); padding-top: 2px; }
     .compose-card h3 { font-size: 16px; font-weight: 600; color: var(--anchor); margin-bottom: 6px; letter-spacing: -0.02em; }
     .compose-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .second-round-title { margin: 36px 0 8px; font-size: 18px; font-weight: 600; color: var(--anchor); }
 
     .code-block {
       background: var(--ink); border-radius: var(--radius);
@@ -918,7 +919,7 @@
           <div class="hero-stack">
             <p class="hero-claim">AI Coding 时，Agent 越多，越需要同一块锚</p>
             <p class="hero-lead">
-            产品、前端、后端、测试 Agent 可以分头推进，但不能各自发明字段。
+            前端、客户端、测试可以分头推进，但字段名必须对齐后端钉死的那份 OpenAPI。
             AnchorLock 把名字钉死：名单是 <code>order_no</code>，写成 <code>orderId</code>，<strong>合并就停</strong>。
             </p>
           </div>
@@ -1104,7 +1105,7 @@
       <div class="wrap">
         <p class="kicker">LIVE CHECK</p>
         <h2 class="section-title">名单是 order_no，代码写成 orderId → 失败</h2>
-        <p class="section-desc">还是上面那个订单号。不用先搞懂任何术语。跑这一条就能看见。</p>
+        <p class="section-desc">还是上面那个订单号。红了改代码、不要改契约。把 FAIL 贴给编码 Agent，再跑同一条。</p>
         <div class="terminal">
           <div class="terminal-bar">
             <span class="terminal-dot r"></span>
@@ -1113,14 +1114,17 @@
             <span class="terminal-title">npx @anchorlock/cli demo</span>
           </div>
           <div class="terminal-body">
-            <div class="dim"># 名单里写着：order_no、trade_no（aliases 含 orderId / order_sn）</div>
+            <div class="dim"># 契约是 order_no；代码写成了 orderId / order_sn</div>
             <div class="dim">$ npx @anchorlock/cli demo</div>
-            <div class="violation">fail  field-name gate  (2 issues)</div>
-            <div class="violation">  - "orderId" should be "order_no" (src/order.js)</div>
-            <div class="violation">  - "order_sn" should be "order_no" (src/order.js)</div>
+            <div class="violation">FAIL  field-name gate  (2 issues)</div>
+            <div class="violation">  × "orderId" should be "order_no" (src/order.js)</div>
+            <div class="violation">  × "order_sn" should be "order_no" (src/order.js)</div>
+            <div class="dim">next  改代码对齐上面的规范名，不要改 pin / OpenAPI。</div>
+            <div class="dim">      把本段 FAIL 贴给编码 Agent；改完再跑同一条 check。</div>
             <br>
-            <div class="dim"># 把代码改成名单里的名字，再跑同一条</div>
-            <div class="pass">ok  field-name gate passed  (2 names · 1 files)</div>
+            <div class="dim"># 改代码，不改契约。再跑同一条</div>
+            <div class="pass">PASS  field-name gate  (2 names · 1 files)</div>
+            <div class="pass">demo ok: 碰撞拦住 → 对齐通过</div>
             <div class="dim">$ <span class="caret" aria-hidden="true"></span></div>
           </div>
         </div>
@@ -1142,7 +1146,7 @@
         <table class="mini-table" aria-label="抛锚和收紧分别是哪条命令">
           <tr><th></th><th>何时</th><th>命令（记住这一列）</th></tr>
           <tr><td><strong>抛锚</strong></td><td>Agent 正在写文件</td><td>SemanticAnchor MCP：<code>bind</code> / <code>verify_usage</code>（吃 <code>constraints.json</code>）</td></tr>
-          <tr><td><strong>收紧</strong></td><td>合进主干之前</td><td>本 CLI：<code>anchor check --contract … --src src</code></td></tr>
+          <tr><td><strong>收紧</strong></td><td>合进主干之前</td><td>本 CLI：<code>anchor check --contract pin.json --src src --strict --require-hash</code></td></tr>
         </table>
         <p class="path-note" style="margin-bottom:28px"><code>anchor constraints --from</code> 不是抛锚，只是从 OpenAPI / pin 投影出抛锚要吃的那份 <code>constraints.json</code>。</p>
         <div class="cast-grid">
@@ -1175,7 +1179,7 @@
             <div class="cast-item">
               <span class="compare-tag ok">收紧 · <code>anchor check</code></span>
               <h3>合并前：再扫一遍源码</h3>
-              <p>合进主干前跑 <code>anchor check --contract … --src src</code>。抛锚漏了、<code>bind</code> 没绑、有人用手改飘了，卡在这里进不了主干。CI 挂的也是这一条。</p>
+              <p>合进主干前跑 <code>anchor check --contract pin.json --src src --strict --require-hash</code>。抛锚漏了、<code>bind</code> 没绑、有人用手改飘了，卡在这里进不了主干。本机和 CI 挂同一条。</p>
             </div>
           </div>
         </div>
@@ -1196,15 +1200,15 @@
           <div class="compose-card">
             <div class="compose-num">01</div>
             <div>
-              <h3>装进你要锁的那个仓</h3>
-              <p>在前端仓、后端仓或测试仓里执行 <code>npm i -D @anchorlock/cli</code>。命令是 <code>anchor</code>。全公司只锁一份契约，不要每个仓各 init 一份。</p>
+              <h3>装进消费仓</h3>
+              <p>在<strong>前端 / 客户端 / 测试仓</strong>执行 <code>npm i -D @anchorlock/cli</code>。不要拿它去扫同一个 Java 后端仓里的方法和 SQL。全公司钉同一份发版 OpenAPI，不要每个仓各编一份名单。</p>
             </div>
           </div>
           <div class="compose-card">
             <div class="compose-num">02</div>
             <div>
               <h3>一次 <code>init</code></h3>
-              <p>装上 Agent 协议和示例名单。之后起草、写代码、跑闸都由 AI 串，不必再跑展示命令。</p>
+              <p>只装 Agent 协议，<strong>不写字段名单</strong>。名单来自 pin 住的 OpenAPI，或一处从代码起草后由<strong>人</strong>确认。</p>
             </div>
           </div>
         </div>
@@ -1214,7 +1218,7 @@
 <span class="cmd">npx anchor init</span></pre>
         </div>
         <div class="hero-actions" style="margin-top:24px">
-          <a class="btn btn-primary" href="#start">然后对 AI 说话</a>
+          <a class="btn btn-primary" href="#path-a">去钉 OpenAPI</a>
         </div>
       </div>
     </section>
@@ -1222,37 +1226,36 @@
     <section id="start">
       <div class="wrap">
         <p class="kicker">HOOK INTO YOUR REPO</p>
-        <h2 class="section-title">上手。人只说需求，Agent 串流程。</h2>
+        <h2 class="section-title">上手。对照钉死的说明书。</h2>
         <p class="section-desc">
-          不需要需求仓，不用手改 JSON，不必猜路径。上面装过一次之后，起草名单、写代码、跑闸都由你的 AI 完成；人只保留一个动作——对名单点头。
+          契约必须有仓外权威。编码 Agent 根据需求自己写名单，等于没锁。有 OpenAPI 就 pin；没有就一处起草，人确认一次。
         </p>
         <div class="compose-list">
           <div class="compose-card">
             <div class="compose-num">01</div>
             <div>
-              <h3>对 AI 说人话，不碰 JSON</h3>
-              <p>「实现订单查询，锁住订单号，别名 <code>orderId</code> / <code>order_sn</code>」。Agent 起草名单、列给你确认、用规范名写代码。</p>
+              <h3>Pin 发版 OpenAPI</h3>
+              <p>后端构建导出的 <code>openapi.json</code> 挂在 tag 上。消费仓只提交 <code>contracts/*.pin.json</code>（url + hash），不 clone 后端、不对着 <code>/v3/api-docs</code>。</p>
             </div>
           </div>
           <div class="compose-card">
             <div class="compose-num">02</div>
             <div>
-              <h3>交付前收紧：跑 <code>anchor check</code></h3>
-              <p>这就是收紧。Agent 跑 <code>anchor check --contract constraints.json</code>。红了它改代码，不改名单。其它字段先不管；合主干要「名单外也失败」时再加 <code>--strict</code>。</p>
+              <h3>合主干：<code>anchor check --strict</code></h3>
+              <p>红了改代码对齐说明书，不改 pin。把 FAIL 贴给编码 Agent。函数名（<code>lookupMine()</code>）不算字段。不要用它扫本仓 Java 的 getter 和 SQL 列名。</p>
             </div>
           </div>
         </div>
         <div class="code-block" style="margin-top:28px">
-          <pre><span class="comment"># 对你的 AI 说（不是又一条要记的命令）：</span>
-<span class="comment">#   「实现订单查询，锁住订单号，别名 orderId / order_sn」</span>
-<span class="comment"># Agent 写名单、写代码，并在交付前收紧：</span>
-<span class="cmd">npx anchor check --contract</span> constraints.json</pre>
+          <pre><span class="comment"># 消费仓 · 对照钉死的说明书</span>
+<span class="cmd">npx anchor pin --from</span> dist/openapi.json <span class="cmd">--url</span> https://…/openapi.json <span class="cmd">--tag</span> v1.4.0
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span></pre>
         </div>
-        <p class="path-note">名字的最终决定权在人：Agent 起草的名单要在对话里过你一眼。闸长什么样见本页上面的终端，不必另跑 <code>demo</code>。有 OpenAPI 再往下钉说明书。</p>
+        <p class="path-note">不要从工单 / PRD 让 Agent 撰写 <code>constraints.json</code>。没有 OpenAPI 时，用下面的路 B：一处 <code>init --from-code</code>，人确认后再 check。</p>
 
-        <h2 class="section-title" style="margin-top:56px">以后：有没有现成的接口文档？</h2>
+        <h2 class="section-title" style="margin-top:56px">有没有现成的接口文档？</h2>
         <p class="section-desc">
-          全公司只锁定一份机器名。有 OpenAPI 走路 A，没有就继续用上面那份 <code>constraints.json</code>。不要两条一起走。
+          全公司只锁定一份机器名。有 OpenAPI 走路 A。没有则一处起草、人确认；其它仓只 check 那一份。
         </p>
 
         <figure class="flow" aria-label="两条路怎么分">
@@ -1283,13 +1286,13 @@
           <a class="path-pick rec" href="#path-a">
             <div class="path-pick-kicker">PATH A</div>
             <h3>有 OpenAPI</h3>
-            <p>后端已经有接口说明书。不要再手写字段清单。钉住这次发版挂出来的那一份，前端、后端、测试都对它扫。</p>
+            <p>后端已经有接口说明书。消费仓钉住这次发版挂出来的那一份，不要再手写字段清单。</p>
             <span class="path-pick-go">看路 A 怎么做 →</span>
           </a>
           <a class="path-pick" href="#path-b">
             <div class="path-pick-kicker">PATH B</div>
             <h3>没有 OpenAPI</h3>
-            <p>继续用上面那份人手改过的 <code>constraints.json</code>。不要对全仓 <code>init --from-code</code>。名字多了往文件里加 unit。</p>
+            <p>一处 <code>init --from-code</code> 起草，<strong>人确认</strong> ids。其它仓只 check 这一份。不要让 Agent 按需求编名单。</p>
             <span class="path-pick-go">看路 B 怎么做 →</span>
           </a>
         </div>
@@ -1308,8 +1311,8 @@
             </div>
             <div class="compare-card highlight">
               <span class="compare-tag ok">要这样</span>
-              <h3>三边都指向同一份发版说明书</h3>
-              <p>后端打 tag，把说明书挂到发版页。前端只提交 pin：url 填下载链接。check 自己按 url 拉文件。</p>
+              <h3>消费仓都指向同一份发版说明书</h3>
+              <p>后端打 tag，把说明书挂到发版页。前端只提交 pin：url 填下载链接。check 自己按 url 拉文件。不要拿 check 去扫后端自己的实现代码。</p>
             </div>
           </div>
           <figure class="flow" aria-label="路 A 流向">
@@ -1331,13 +1334,13 @@
                   <div class="flow-box file">只提交 pin.json<small>url + hash + version</small></div>
                   <div class="flow-arrow">↓ 同一份说明书</div>
                   <div class="flow-split">
-                    <div class="flow-box ok">收紧<small>anchor check --contract pin.json --src src</small></div>
+                    <div class="flow-box ok">收紧<small>check --src src --strict --require-hash</small></div>
                     <div class="flow-box ok">抛锚<small>constraints --from → SA bind / verify_usage</small></div>
                   </div>
                 </div>
               </div>
             </div>
-            <figcaption class="flow-caption">左边产出<strong>一份钉死的说明书</strong>，右边只记「去哪下、指纹是多少」。收紧：<code>anchor check --contract pin.json --src src</code>，自己按 url 拉文件。抛锚：先 <code>anchor constraints --from</code> 投影成 <code>constraints.json</code>，再交给 SemanticAnchor 的 <code>bind</code> / <code>verify_usage</code>。</figcaption>
+            <figcaption class="flow-caption">左边产出<strong>一份钉死的说明书</strong>，右边只记「去哪下、指纹是多少」。收紧：<code>anchor check --contract pin.json --src src --strict --require-hash</code>，自己按 url 拉文件。抛锚：先 <code>anchor constraints --from</code> 投影成 <code>constraints.json</code>，再交给 SemanticAnchor 的 <code>bind</code> / <code>verify_usage</code>。</figcaption>
           </figure>
           <div class="who-grid">
             <div class="who-card">
@@ -1353,9 +1356,9 @@
               <h4>前端仓做什么</h4>
               <ol>
                 <li>把收到的 <code>order.pin.json</code> 放进 <code>contracts/</code> 并提交（不要手抄 hash，也不要把整份 OpenAPI 提交进来）</li>
-                <li>收紧：<code>anchor check --contract contracts/order.pin.json --src src</code>（对照说明书扫代码）</li>
+                <li>收紧（本机和 CI 同一条）：<code>anchor check --contract contracts/order.pin.json --src src --strict --require-hash</code></li>
+                <li>红了：把 FAIL 贴给编码 Agent，改代码对齐说明书，不要改 pin</li>
                 <li>抛锚：先 <code>anchor constraints --from contracts/order.pin.json -o constraints.json</code>，再把 SemanticAnchor 指向它（MCP <code>bind</code> / <code>verify_usage</code>）</li>
-                <li>CI 挂同一条收紧命令，加上 <code>--require-hash</code></li>
               </ol>
             </div>
           </div>
@@ -1379,7 +1382,7 @@
               <div class="compose-num">03</div>
               <div>
                 <h3>扫 <code>src/</code>，对不上就红</h3>
-                <p><code>--src src</code> 只看你的业务代码，不看 <code>node_modules</code>。代码里写了 <code>orderId</code>、<code>order_sn</code>，说明书是 <code>order_no</code> → 命令退出码非 0。Agent 改代码对齐说明书，不改 pin。</p>
+                <p><code>--src src --strict --require-hash</code> 只看你的业务代码。写了 <code>orderId</code> 而说明书是 <code>order_no</code> → 退出码非 0。把 FAIL 贴给 Agent，改代码，不改 pin。</p>
               </div>
             </div>
           </div>
@@ -1394,21 +1397,42 @@
   <span class="cmd">--tag</span> "$tag" <span class="cmd">-o</span> dist/order.pin.json
 <span class="comment"># 把 dist/order.pin.json 交给前端（发版附件或拷贝）。前端不要自己再 pin</span>
 
-<span class="comment"># 收紧 · 合并前：拿说明书对照 src 里的字段名</span>
+<span class="comment"># 收紧 · 本机和 CI 同一条。红了改代码，把 FAIL 贴给 Agent，不要改 pin</span>
 <span class="comment"># git add contracts/order.pin.json &amp;&amp; git commit</span>
-<span class="cmd">anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src
-<span class="comment"># 红了：src 里的字段名和说明书不一致。改代码，不要改 pin。</span>
+<span class="cmd">anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
 
 <span class="comment"># 抛锚前先投影。真正的抛锚是 SemanticAnchor 的 bind / verify_usage（不是这条 CLI）</span>
 <span class="cmd">anchor constraints --from</span> contracts/order.pin.json <span class="cmd">-o</span> constraints.json</pre>
           </div>
-          <p class="path-note">pin 相当于契约的 lockfile：记下「去哪下、指纹是多少」。前端提交它，是为了让本机和 CI 都锁在同一版说明书上，而不是 submodule 后端仓、也不是对着线上 <code>/v3/api-docs</code> 扫。改字段名：后端先打新 tag、重算 pin → 前端换 pin 再改业务代码。</p>
+          <p class="path-note">pin 相当于契约的 lockfile：记下「去哪下、指纹是多少」。前端提交它，是为了让本机和 CI 都锁在同一版说明书上，而不是 submodule 后端仓、也不是对着线上 <code>/v3/api-docs</code> 扫。</p>
+
+          <h4 class="second-round-title">第二回合：这次需求要加字段</h4>
+          <p class="section-desc">字段范围由<strong>后端发版</strong>推进，不由你和 Agent 的对话推进。需求说要加「优惠券抵扣」，不等于可以往契约里塞一个 <code>couponAmount</code>——先让后端发版，说明书上有了，前端才认。pin 是<strong>整份换</strong>，不是往里面加字段。</p>
+          <div class="code-block">
+            <pre><span class="comment"># 后端发了 v1.5.0 之后，前端换整份。url 里的 tag 跟着换，不用手改</span>
+<span class="cmd">npx anchor repin --from</span> ../order-api/dist/openapi.json <span class="cmd">--tag</span> v1.5.0 <span class="cmd">--change</span> PROJ-123
+
+<span class="comment"># 看清楚换了什么再提交</span>
+<span class="cmd">git diff</span> contracts/order.pin.json
+<span class="cmd">git add</span> contracts/order.pin.json
+
+<span class="comment"># 改业务代码用新字段，跑同一条 check</span>
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
+<span class="out">  pin   v1.5.0 · change PROJ-123</span></pre>
+          </div>
+          <table class="mini-table" aria-label="pin 的版本管理靠什么">
+            <tr><th>你想知道的</th><th>记在哪</th></tr>
+            <tr><td>现在锁在哪一版</td><td><code>pin.json</code> 的 <code>version</code> + <code>hash</code>，每次 <code>check</code> 都打出来</td></tr>
+            <tr><td>为什么换的这一版</td><td><code>pin.json</code> 的 <code>change</code>（需求号）+ 这次 commit</td></tr>
+            <tr><td>一共换过几次</td><td><code>git log contracts/order.pin.json</code></td></tr>
+          </table>
+          <p class="path-note"><strong>编码 Agent 不许自己 repin。</strong>换版由「后端发布了新版本」触发，不由「check 红了想换绿」触发。红了只能改代码。</p>
         </div>
 
         <div class="path-how" id="path-b">
           <div class="path-how-head">
             <span class="path-mark">B</span>
-            <h3>没有 OpenAPI：从代码自动起草</h3>
+            <h3>没有 OpenAPI：从代码起草，人确认一次</h3>
           </div>
           <p class="section-desc">没有接口文档，就不要手抄字段清单。命令扫现有源码，把驼峰/下划线收成一份 <code>constraints.json</code>。人只确认，不从空白填起。</p>
           <figure class="flow" aria-label="路 B 流向">
@@ -1418,7 +1442,7 @@
                 <div class="flow-stack">
                   <div class="flow-box">现有源码<small>orderId / order_sn / 「单号」…</small></div>
                   <div class="flow-arrow">↓ 自动</div>
-                  <div class="flow-box file">起草 constraints.json<small>anchor init --from-code src</small></div>
+                  <div class="flow-box file">起草 constraints.json<small>anchor init --from-code &lt;一个模块&gt;</small></div>
                   <div class="flow-arrow">↓ 人确认</div>
                   <div class="flow-box">删掉不该锁的名字<small>函数名、框架词</small></div>
                 </div>
@@ -1443,6 +1467,7 @@
               <ol>
                 <li><code>anchor init --from-code src</code> 自动写出 <code>constraints.json</code></li>
                 <li>打开文件：删掉函数名、框架词、一次性变量</li>
+                <li>判据：<strong>留</strong>会跨进程传的名字（HTTP JSON key、SQL 列名、MQ payload、存储字段）；<strong>删</strong>函数名、局部变量、类型名、框架词，以及只在一个文件出现过的名字。拿不准就删</li>
                 <li>确认推荐的 snake_case；近义词不会自动合并，要把 <code>id</code> 改成 <code>order_no</code>，并把 <code>orderId</code> / <code>order_sn</code> 写进 <code>aliases</code></li>
                 <li>有枚举再补 <code>values</code>。不要另起一份 txt</li>
               </ol>
@@ -1480,7 +1505,7 @@
           <p class="section-desc">和跑测试同一位置。失败就不能合。这里挂的是<strong>收紧</strong>：<code>anchor check</code>。抛锚（<code>bind</code> / <code>verify_usage</code>）发生在编辑器写盘时，不替代这一条。</p>
           <div class="code-block">
             <pre><span class="comment"># 收紧 · 路 A（CI 挂这条，合主干前再拦一次）</span>
-<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--require-hash</span>
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
 <span class="comment"># 收紧 · 路 B</span>
 <span class="cmd">npx anchor check --contract</span> constraints.json <span class="cmd">--src</span> src</pre>
           </div>
@@ -1490,7 +1515,7 @@
         <p class="section-desc">抛锚和收紧必须分开记。本包装的是收紧；抛锚是另一个工具，吃同一份契约。</p>
         <table class="mini-table">
           <tr><th>你想做的</th><th>那一步叫</th><th>对应命令</th></tr>
-          <tr><td>合代码前发现 orderId 写飘了</td><td>收紧</td><td><code>anchor check --contract … --src src</code></td></tr>
+          <tr><td>合代码前发现 orderId 写飘了</td><td>收紧</td><td><code>anchor check --contract pin.json --src src --strict --require-hash</code></td></tr>
           <tr><td>AI 正在写文件时先对照契约</td><td>抛锚</td><td>SemanticAnchor MCP <code>bind</code> / <code>verify_usage</code></td></tr>
           <tr><td>有 OpenAPI，要给抛锚准备文件</td><td>投影（不是抛锚）</td><td><code>anchor constraints --from pin.json -o constraints.json</code></td></tr>
           <tr><td>从需求文档编出整份接口包</td><td>进阶</td><td>spec-forge，不在这一页</td></tr>

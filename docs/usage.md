@@ -1,72 +1,44 @@
 # Anchorlock CLI 使用说明
 
 包：`@anchorlock/cli` · 命令：`anchor`  
-本包装的是**收紧**：合并前的 `anchor check`。**抛锚**是写盘前的 SemanticAnchor MCP（`bind` / `verify_usage`），吃 `constraints.json`。两下钉同一份契约。`anchor constraints --from` 只是从 OpenAPI 投影出那份文件，它本身不是抛锚。
+本包装的是**收紧**：消费仓合并前，对照一份**仓外权威**的契约扫字段名。权威来自后端发版的 OpenAPI（钉 hash），不是本仓 Agent 根据需求编的名单。
 
-需要 **Node.js 18+**。内核来自 `@keelforge/spec-forge` ≥ **0.5.19**。本机若与 `spec-forge` 仓库同级，会优先用 `../spec-forge`。
+**抛锚**是写盘前的 SemanticAnchor MCP（`bind` / `verify_usage`）。有 OpenAPI 时，先 `anchor constraints --from` 投影出它要吃的 `constraints.json`；投影本身不是抛锚。
+
+需要 **Node.js 18+**。内核 `@keelforge/spec-forge` ≥ **0.5.19**。本机若与 `spec-forge` 同级，会优先用 `../spec-forge`。
 
 ---
 
-## 0. 上手（先做这个）
+## 0. 先问一句：有没有 OpenAPI？
 
-不需要需求仓，不用手改 JSON，不必猜文件。`init` 只跑一次。之后流程由你的 AI 编码代理串起来，人只做两件事：说这次做什么、对名单点头。
+有 → **路 A（默认）**。没有 → 路 B，且必须人确认一次起草稿。不要两条一起走。不要从 PRD 手写/让 Agent 写字段名单。
+
+---
+
+## 1. 路 A：钉死的 OpenAPI（推荐）
+
+后端构建导出说明书（Springdoc / Nest / FastAPI），打 tag，把 `openapi.json` 挂到 Release。前端**不 clone 后端仓**，不对着线上 `/v3/api-docs` 扫。
+
+消费仓只提交 pin：
 
 ```bash
 npm i -D @anchorlock/cli
-npx anchor init
-# 写入 .cursor/skills + .claude/skills + AGENTS.md + 示例 constraints.json
+npx anchor init    # 只装 Agent skill，不写名单
+
+npx anchor pin --from dist/openapi.json \
+  --url "https://git.example.com/group/order-api/-/releases/v1.4.0/downloads/openapi.json" \
+  --tag v1.4.0 -o contracts/order.pin.json
+
+npx anchor check --contract contracts/order.pin.json --src src --strict --require-hash
 ```
 
-然后对你的 AI 说人话：
+`check` 做的事：
 
-> 实现订单查询，锁住订单号，别名 orderId / order_sn
+1. 读 pin：优先用本地 `path`，否则下 `url`，用 `hash` 核对没下错文件。
+2. 从说明书 schema 属性名抽出契约认的字段（如 `order_no`）。
+3. 扫 `--src`（一般是 `src/`，跳过 `node_modules`）。近义词或说明书上没有的字段名 → 退出码非 0。
 
-装好的 skill 会让 Agent 自己完成：起草 `constraints.json`（在对话里列给你确认）→ 用规范名 `id` 写代码 → 交付前跑 `npx anchor check --contract constraints.json`。红了 Agent 改代码，不改名单。
-
-合主干要「不在名单里也失败」时：`anchor check --contract constraints.json --src src --strict`。
-
-有 OpenAPI 再走路 A（Agent 用 `anchor constraints --from` 投影，不另编名字）。没有就停在这份名单，字段多了让 Agent 往里加。
-
----
-
-先问自己一句：**有没有现成的接口文档（OpenAPI）？** 有走路 A。没有就用上面那份名单。不要两条一起走。
-
----
-
-## 1. 安装
-
-尚未发到 npm 时，在本仓运行：
-
-```bash
-cd /path/to/anchorlock-cli
-npm install
-npx anchor --help
-```
-
-发布后：
-
-```bash
-npm install -D @anchorlock/cli
-npx anchor --help
-```
-
----
-
-## 2. 路 A：已有 OpenAPI（推荐）
-
-后端已经有接口说明书。它就是上游真理，**不要再手写一份字段清单**。
-
-### 2.1 钉住发版，再拿说明书对照代码
-
-前端仓只提交 pin。`url` 是发版页上 **openapi.json 附件的 https 下载地址**（不是 git 仓库，不是 `/v3/api-docs`）。
-
-**`anchor check --contract contracts/order.pin.json --src src` 做的事：**
-
-1. 读 pin：去 `url` 拉那一版 `openapi.json`，用 `hash` 核对没下错文件。
-2. 从说明书的 schema 属性名抽出契约认的字段（如 `order_no`）。
-3. 扫 `--src` 指向的业务目录（一般是 `src/`，不扫 `node_modules`）。代码里写了近义词或说明书上没有的字段名 → 退出码非 0。
-
-pin 只是指针。没有这条 `check`，合进主干时没人对照说明书。红了改代码对齐说明书，不要改 pin。CI 再跑同一条并加 `--require-hash`。
+红了改**代码**对齐说明书，不要改 pin。CI 复制 [`ci/check-contract.github.yml`](../ci/check-contract.github.yml)，挂在 merge 保护上。
 
 ```json
 {
@@ -77,125 +49,146 @@ pin 只是指针。没有这条 `check`，合进主干时没人对照说明书�
 }
 ```
 
-`anchor pin` 会顺便写下相对 `path`。本地还能读到这份文件时，`check` **不联网**；读不到再按 `url` 下载。
+本地还能读到 `path` 时不联网。私有制品把只读 token 放进 `ANCHOR_CONTRACT_TOKEN`。
+
+合主干用 `--strict`：契约来自完整 OpenAPI，名单外的字段名也应失败。这在 TypeScript / JS 消费仓可用。不要拿 `--strict` 去扫同一个 Java 后端仓里的方法名和 SQL 列名——那是编译器和 MyBatis 的范围。
+
+### 抛锚
 
 ```bash
-# 对着构建抽出的 openapi.json 算指纹，写出 pin（url 填发版页下载地址）
-anchor pin --from dist/openapi.json \
-  --url "https://git.example.com/group/order-api/-/releases/v1.4.0/downloads/openapi.json" \
-  --tag v1.4.0 -o contracts/order.pin.json
-
-anchor check --contract contracts/order.pin.json --src src
-# 本地已有文件时：
-anchor check --contract ./openapi.json --src src
-```
-
-后端仓打 tag（标签，不是分支），CI 把 `openapi.json` 挂到这次 Release：
-
-```bash
-tag="v1.4.0"
-git tag "$tag"
-git push origin "refs/tags/$tag"
-# origin = clone 后的默认远程名，以 git remote -v 为准
-```
-
-不要对正在跑的 `/v3/api-docs` 扫。CI 加 `--require-hash`（见本仓 [`ci/`](../ci/)）。后端不必装 npm。
-
-`anchor check` 只拦**字段名**。结构和枚举值在同一份 `constraints.json` 里，给抛锚（SemanticAnchor `bind` / `verify_usage`）用。
-
-### 2.2 抛锚：投影之后交给 SemanticAnchor
-
-抛锚不是 `anchor check`，也不是 `anchor constraints --from`。抛锚 = SemanticAnchor 在写盘前跑 `bind` / `verify_usage`。它吃 `constraints.json`（名字 + 类型 + 枚举 + 形状）。有 OpenAPI 时，先从钉住的说明书投影出这份文件，不要手抄：
-
-```bash
-# 投影（给抛锚准备文件，这一步本身不是抛锚）
 anchor constraints --from contracts/order.pin.json -o constraints.json
-# 或
-anchor constraints --from ./openapi.json -o constraints.json
+# 然后 SA_CONSTRAINTS 指向这份文件，SemanticAnchor 跑 bind / verify_usage
 ```
 
-然后把 `SA_CONSTRAINTS` 指到这份文件，由 SemanticAnchor 执行 `bind` / `verify_usage`。收紧继续用 `anchor check --contract pin.json --src src`（或同一份 `constraints.json`）。
+收紧继续：`anchor check --contract contracts/order.pin.json --src src --strict --require-hash`。
 
 ---
 
-## 3. 路 B：没有 OpenAPI
+## 1.5 第二回合：这次需求要加字段
 
-继续用 §0 那份人手改过的 `constraints.json`。**不要**对整个 `src` 跑 `init --from-code`。
+**字段范围由后端发版推进，不由你和 Agent 的对话推进。** 需求说要加「优惠券抵扣」，不等于你可以往契约里加一个 `couponAmount`——先让后端发版，说明书上有了，前端才认。
 
-只有在你已经圈定「就这几个目录、人会删掉垃圾名」时，才用起草：
+pin 是**整份换**，不是往里面加字段：
+
+```bash
+# 1. 后端：改完接口，重新导出、打新 tag、挂到 Release
+# 2. 前端：换到新那一版（url 里的 tag 会跟着换）
+npx anchor repin --from ../order-api/dist/openapi.json --tag v1.5.0 --change PROJ-123
+
+# 3. 看清楚换了什么，再提交
+git diff contracts/order.pin.json
+git add contracts/order.pin.json
+
+# 4. 改业务代码用新字段，跑同一条 check
+npx anchor check --contract contracts/order.pin.json --src src --strict --require-hash
+```
+
+`repin` 就是「换版专用的 pin」：沿用原来的 `url` 和 `change`，把 tag 换掉、hash 重算、直接覆盖（不用记 `--force`）。制品和上一版一字不差时会警告，多半是后端还没重新导出。
+
+版本管理靠两样东西，不需要另建目录：
+
+| 东西 | 谁记的 |
+|---|---|
+| 锁在哪一版 | `pin.json` 里的 `version` + `hash` |
+| 为什么换 | `pin.json` 里的 `change`（需求号）+ 这次 commit |
+| 换过几次 | `git log contracts/order.pin.json` |
+
+`check` 每次都会把这两样打出来，人不用去翻文件：
+
+```
+  pin   v1.5.0 · change PROJ-123
+```
+
+**编码 Agent 不许自己 repin。** 换版是「后端发了新版本」触发的，不是「check 红了想换绿」。红了只能改代码。
+
+---
+
+## 2. 路 B：没有 OpenAPI
+
+只在**一处、已经圈定的模块**起草。人确认 `id`，其它仓只 `check` 这一份。
 
 ```bash
 anchor init --from-code path/to/one-module -o constraints.json
-# 打开文件：删掉函数名、框架词；把 id 改成要锁的名字；近义词进 aliases
-anchor check --contract constraints.json --src path/to/one-file.js
+# 人确认之后：
+anchor check --contract constraints.json --src src
 ```
 
-`orderId` 会收成 `id: order_id`，原名进 `aliases`。近义词不会自动合并：要把 `id` 改成 `order_no`，并把 `orderId` / `order_sn` 写进 `aliases`，`check` 才会报「应该写成 order_no」。有枚举再补 `values`。
+起草稿里留什么、删什么，按这条判：
 
-**不要每个仓都 init 一份。** 前端扫出 `orderStatus`、后端扫出 `order_status`，两份都会绿，联调照样炸。只在一处扫、人确认，其它仓只 `check`。
+| 留 | 删 |
+|---|---|
+| 会跨进程传的名字：HTTP JSON key、SQL 列名、MQ payload、存储字段 | 函数名、方法名、局部变量、类型名、框架词 |
+| 两个以上模块都在用的业务名 | 只在一个文件里出现过的名字 |
+
+拿不准就删。漏锁只是这个字段没保护；错锁会让 CI 逼别人改本来正确的代码，工具很快就被关掉。
+
+路 B 没有 tag 和 hash，`constraints.json` 的版本就是 git 历史。加字段的规矩和路 A 一样：**先改这一份、人确认，再写代码**，不要写完代码回头补名单。
+
+不要每个仓都起草：前端扫出 `orderStatus`、后端扫出 `order_status`，两份都绿，联调照样炸。
+
+不要让 Agent 按「实现订单查询」往 `units` 里加字段。那是自己给自己发证。
 
 连代码都没有、要从零发明字段时，才用 `anchor constraints --init`。那是例外。
 
-字段含义见 [constraints.json 协议说明](../../spec-forge/docs/constraints-json-spec.md)（同级仓）或你装到的 `@keelforge/spec-forge` 包内 `docs/constraints-json-spec.md`。
-
 ---
 
-## 4. `check` 在查什么
+## 3. `check` 在查什么
 
-扫 `.js` / `.ts` / `.vue` / `.java` 等，跳过 `node_modules`、`dist`。
+词法扫描 `.js` / `.ts` / `.vue` / `.java` 等（**不扫 `.xml`**），对照契约的 `id` / `aliases`，以及驼峰↔蛇形折合。不读 PRD，不追踪调用链。
 
 | 情况 | 结果 |
 |------|------|
-| 标识符与契约里某个 `id` 完全一致 | 通过 |
-| `orderId` 写在某单元的 `aliases` 里（含源码里的 `"单号"`） | **漂移 · 红**（应对齐 `order_no`） |
+| 与某个 `id` 完全一致 | 通过 |
+| 出现在某单元 `aliases`（含 `"单号"`） | **漂移 · 红** |
 | `orderNo` 能折成契约里的 `order_no` | **漂移 · 红** |
-| 长得像字段（驼峰或 `foo_bar`）但不在契约里 | **未声明 · 红** |
-| `id` / `name` / `status` 等万能词 | 忽略，不红 |
+| 长得像字段但不在契约里 | 默认忽略；`--strict` 时 **未声明 · 红** |
+| 只作为函数出现：`lookupMine()`、`encodeURIComponent()`、`const fetchOrder = async () =>` | `--strict` 下忽略 |
+| `id` / `name` / `status`、PascalCase 类型、`useXxx` | 忽略 |
 
-`--json` / `--format json` 时 stdout 为结构化结果，失败仍 exit 1。
+`--src` 只定扫描根。人不要靠它指定某一个源文件。看未提交改动用 `--changed`。
 
 ---
 
-## 5. 接到 CI
+## 4. 接到 CI（消费仓）
 
 ```yaml
-# 路 A
-- run: npx anchor check --contract contracts/order.pin.json --src src --require-hash
-# 路 B
-- run: npx anchor check --contract constraints.json --src src
+- run: npx anchor check --contract contracts/order.pin.json --src src --strict --require-hash
 ```
 
 门禁挂在 **merge / 主分支保护** 上。Prompt「请统一命名」挡不住下一次生成。
 
 ---
 
-## 6. 抛锚和收紧（各对应一条命令）
+## 5. 抛锚和收紧
 
 | | 何时 | 命令 | 吃什么 |
 |---|---|---|---|
-| **抛锚** | Agent 正在写文件 | SemanticAnchor MCP：`bind` / `verify_usage` | `constraints.json` |
-| **收紧** | 合进主干之前 | `anchor check --contract … --src src` | 路 A 的 OpenAPI / pin；或同一份 `constraints.json` |
-| 投影（不是抛锚） | 有 OpenAPI、要给抛锚准备文件 | `anchor constraints --from pin.json -o constraints.json` | 钉住的说明书 |
+| **抛锚** | Agent 正在写文件 | SemanticAnchor MCP：`bind` / `verify_usage` | 从 OpenAPI **投影**出的 `constraints.json` |
+| **收紧** | 合进主干之前 | `anchor check --contract pin.json --src src --strict` | 钉死的 OpenAPI / pin |
+| 投影（不是抛锚） | 给抛锚准备文件 | `anchor constraints --from pin.json` | 钉住的说明书 |
 
-`compile` / `pipeline` / `new-change` 会直接拒绝。那是需求仓进件，不在开源入门路径上。
+`compile` / `pipeline` / `new-change` 会直接拒绝。
 
 ---
 
-## 7. 常见问题
+## 6. 常见问题
 
 **每个仓都生成一份名单？**  
-不要。路 A 钉同一份发版 OpenAPI；路 B 只扫一次代码，各仓共用这一份 `constraints.json`。
+不要。路 A 钉同一份发版 OpenAPI。路 B 只扫一次，各仓共用这一份已确认文件。
 
-**有 OpenAPI 还要手写 constraints 吗？**  
-不要。`anchor constraints --from` 是投影，给抛锚准备文件；它本身不是抛锚。
+**这次需求新增的字段放哪？**  
+不往 pin 里加。后端发新 tag → `anchor repin --tag <新 tag> --change <需求号>` 整份换 → 再改代码。见上面「第二回合」。
 
-**抛锚是 `anchor check` 吗？**  
-不是。收紧 = `anchor check --contract … --src src`。抛锚 = SemanticAnchor MCP `bind` / `verify_usage`。
+**我怎么知道自己锁在哪一版？**  
+`check` 会打 `pin   v1.5.0 · change PROJ-123`。历史看 `git log contracts/order.pin.json`。
 
-**起草扫出一堆函数名？**  
-删。`--from-code` 只是候选。
+**有 OpenAPI 还要让 Agent 写 constraints 吗？**  
+不要。
+
+**在 Java 后端仓跑 check 扫到 SQL 列名 / getter？**  
+别这么用。本工具锁的是消费仓对接口字段；同一仓的 Java 交给编译器。合主干的 `--strict` 给 TS/JS 消费仓。
 
 **红了改清单还是改代码？**  
-默认改代码对齐契约。新概念先写入契约再写代码。
+改代码对齐契约。FAIL 末尾会写：不要改 pin，把这段贴给编码 Agent，改完再跑同一条 check。
 
-**想先看闸、不碰仓库：** `npx @anchorlock/cli demo` 或本仓 `npm run demo`（故意红 → 改对齐 → 绿）。上手不必跑这一条。
+**想先看闸、不碰仓库：** `npx @anchorlock/cli demo` 或本仓 `npm run demo`。

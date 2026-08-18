@@ -1,0 +1,30 @@
+# This repo: run the CLI test suite.
+# Consumer field-name gate lives in ci/check-contract.github.yml — copy that into other projects.
+
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18', '20']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
+      - name: Install from npm registry
+        run: |
+          # Local lockfile links ../spec-forge. CI must resolve the published kernel.
+          rm -f package-lock.json
+          npm install
+      - name: Test
+        run: npm test

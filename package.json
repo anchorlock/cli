@@ -1,7 +1,7 @@
 {
   "name": "@anchorlock/cli",
-  "version": "0.1.3",
-  "description": "Keep AI-generated code faithful to your contract. Field-name gate for CI.",
+  "version": "0.1.8",
+  "description": "Field-name gate: consumer repos vs a pinned OpenAPI.",
   "bin": {
     "anchor": "./bin/anchor.js"
   },

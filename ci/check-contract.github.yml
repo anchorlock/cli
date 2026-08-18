@@ -22,4 +22,4 @@ jobs:
         env:
           ANCHOR_CONTRACT_TOKEN: ${{ secrets.ANCHOR_CONTRACT_TOKEN }}
           SPEC_CONTRACT_TOKEN: ${{ secrets.SPEC_CONTRACT_TOKEN }}
-        run: npx --yes @anchorlock/cli check --contract contracts/order.pin.json --src src --require-hash
+        run: npx --yes @anchorlock/cli check --contract contracts/order.pin.json --src src --strict --require-hash
