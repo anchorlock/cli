@@ -83,6 +83,7 @@ test('help lists only the wedge commands', function () {
   assert.match(r.stdout, /消费仓对照钉死的 OpenAPI/);
   assert.match(r.stdout, /Do not invent a field list/);
   assert.match(r.stdout, /human confirms/);
+  assert.match(r.stdout, /not a third path/);
   assert.doesNotMatch(r.stdout, /pipeline/);
   assert.doesNotMatch(r.stdout, /new-change/);
 });
@@ -176,6 +177,7 @@ test('init installs agent skill without writing a field list', function () {
   const agents = fs.readFileSync(path.join(tmp, 'AGENTS.md'), 'utf8');
   assert.match(agents, /AnchorLock/);
   assert.match(agents, /pin\.json/);
+  assert.match(agents, /共享同一份 pin/);
   assert.doesNotMatch(agents, /根据任务写/);
   const again = run(['init'], tmp);
   assert.equal(again.status, 0, again.stderr);

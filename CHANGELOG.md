@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9
+
+- Docs: several coding agents is not a third path. Share one pin and one check; field scope still moves only when the backend releases.
+
 ## 0.1.8
 
 - `anchor repin --from <new openapi.json> --tag vX.Y.Z`: swap the whole pin when the backend ships a release. Keeps the existing `url` (tag substituted) and `change`, recomputes the hash, no `--force` needed, warns when the artifact is byte-identical.

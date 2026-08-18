@@ -63,6 +63,10 @@ npx anchor check --contract contracts/order.pin.json --src src --strict --requir
 
 History is `git log contracts/order.pin.json`. A coding agent must never `repin` to turn a red gate green — that is the human's call, driven by a release.
 
+### Several agents (not a third path)
+
+Same pin, same check. More agents does not mean more contracts. Backend ships a tagged OpenAPI; a human `repin`s; frontend / client / test agents only change source. Paste FAIL to the agent that drifted. Do not let each agent draft its own list.
+
 Need SemanticAnchor? Project, then point SA at the file:
 
 ```bash

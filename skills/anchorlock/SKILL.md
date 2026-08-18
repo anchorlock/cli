@@ -34,6 +34,8 @@ npx anchor repin --from <新 openapi.json> --tag vX.Y.Z --change <需求号>
 
 换版由「后端发布了新版本」触发，不由「check 红了」触发。Agent 不许为了绿灯 repin 或回退 pin。
 
+多 Agent（同一仓并行，或前端 / 后端 / 测试分头）**不是第三条路**。共享 `contracts/*.pin.json` 和同一条 `check`。不要按自己这次对话另写名单。红了把 FAIL 贴给写飘的那个 Agent。跨仓：等后端发版、人 `repin` 之后，消费仓 Agent 才用新字段。
+
 写盘前若接了 SemanticAnchor：先投影，再 `bind` / `verify_usage`（投影本身不是抛锚）：
 
 ```bash

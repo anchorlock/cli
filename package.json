@@ -1,6 +1,6 @@
 {
   "name": "@anchorlock/cli",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Field-name gate: consumer repos vs a pinned OpenAPI.",
   "bin": {
     "anchor": "./bin/anchor.js"

@@ -1429,6 +1429,38 @@
           <p class="path-note"><strong>编码 Agent 不许自己 repin。</strong>换版由「后端发布了新版本」触发，不由「check 红了想换绿」触发。红了只能改代码。</p>
         </div>
 
+        <div class="path-how" id="agents">
+          <div class="path-how-head">
+            <span class="path-mark">协作</span>
+            <h3>多个 Agent 同时写：不是第三条路</h3>
+          </div>
+          <p class="section-desc">Cursor、Claude、Copilot 并行，或前端 / 后端 / 测试各开一个 Agent，<strong>仍走路 A</strong>（没有说明书则路 B）。协作增加的是写代码的人，不是契约的份数。共享 <code>contracts/order.pin.json</code>，CI 只认同一条 check。</p>
+          <div class="who-grid">
+            <div class="who-card">
+              <h4>人 / 后端 Agent</h4>
+              <ol>
+                <li>人：第一次 <code>pin</code>；后端发新 tag 后 <code>repin --change &lt;需求号&gt;</code></li>
+                <li>后端 Agent：实现接口、导出 OpenAPI、打 tag</li>
+                <li>不要在消费仓里扫后端自己的 Java，也不要手写名单当权威</li>
+              </ol>
+            </div>
+            <div class="who-card">
+              <h4>前端 / 测试 Agent</h4>
+              <ol>
+                <li>用说明书上的名字写代码。红了把整段 FAIL 贴给<strong>写飘的那个</strong> Agent</li>
+                <li>不许 <code>repin</code>、改 pin、按这次对话另编名单</li>
+                <li>跨仓顺序：后端发版 → 人 <code>repin</code> → 消费仓 Agent 才用新字段。测试仓和前端仓 pin 同一个 tag</li>
+              </ol>
+            </div>
+          </div>
+          <div class="code-block">
+            <pre><span class="comment"># 每个 Agent、每个消费仓，同一条。不是每人一份名单</span>
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
+<span class="out">  pin   v1.5.0 · change PROJ-123</span>
+<span class="comment"># 开工先看这一行是不是同一版。冲突在 git，不在契约</span></pre>
+          </div>
+        </div>
+
         <div class="path-how" id="path-b">
           <div class="path-how-head">
             <span class="path-mark">B</span>
@@ -1531,6 +1563,7 @@
         <li><a href="#cast">抛锚与收紧</a></li>
         <li><a href="#install">安装</a></li>
         <li><a href="#start">接到项目</a></li>
+        <li><a href="#agents">多 Agent</a></li>
         <li><a href="https://www.npmjs.com/package/@anchorlock/cli">npm</a></li>
         <li><a href="https://www.npmjs.com/package/@keelforge/spec-forge">spec-forge</a></li>
       </ul>

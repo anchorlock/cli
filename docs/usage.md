@@ -103,6 +103,39 @@ npx anchor check --contract contracts/order.pin.json --src src --strict --requir
 
 ---
 
+## 1.6 多 Agent 协作（不是第三条路）
+
+Cursor、Claude、Copilot 同时写，或前端 / 后端 / 测试各开一个 Agent，**仍走路 A（没有说明书则路 B）**。协作增加的是写代码的人，不是契约的份数。
+
+共享这一份：
+
+```text
+contracts/order.pin.json
+```
+
+所有编码 Agent 吃同一份 `anchor init` 装进去的 skill。CI 只认这一条：
+
+```bash
+npx anchor check --contract contracts/order.pin.json --src src --strict --require-hash
+```
+
+| 谁 | 做什么 | 不许做什么 |
+|---|---|---|
+| 人 | 第一次 `pin`；后端发新 tag 后 `repin --change <需求号>` | 让 Agent 按对话补字段 |
+| 后端 Agent | 实现接口、导出 OpenAPI、打 tag | 在消费仓 `check` 自己的 Java；手写名单当权威 |
+| 前端 / 客户端 / 测试 Agent | 用说明书上的名字写代码；红了把 FAIL 贴回去改源码 | `repin`、改 pin、从 PRD 编名单 |
+| CI | 合主干前跑上面那条 | 没有 |
+
+同一仓里几个 Agent 并行：开工先看 `check` 打出来的 `pin   v1.5.0 · change …` 是不是同一版；各改各的源码；红了把整段 FAIL 贴给**写飘了的那个** Agent。冲突在 git，不在契约。
+
+跨仓时顺序不能倒：后端发版 → 人 `repin` → 前端 / 测试 Agent 才用新字段。前端 Agent 不能先发明 `couponAmount` 再让后端追。测试仓和前端仓 pin **同一个** url/tag。
+
+写盘前可选：投影一次，各 Agent 的 SemanticAnchor 都指向**这一份** `constraints.json`。投影不能代替 `check`，也不能手改当权威。
+
+路 B：只允许**一处**起草并由人确认。其它 Agent 只 `check`。各扫各的（`orderStatus` vs `order_status`）两边都绿，联调照样炸。
+
+---
+
 ## 2. 路 B：没有 OpenAPI
 
 只在**一处、已经圈定的模块**起草。人确认 `id`，其它仓只 `check` 这一份。
@@ -190,5 +223,8 @@ anchor check --contract constraints.json --src src
 
 **红了改清单还是改代码？**  
 改代码对齐契约。FAIL 末尾会写：不要改 pin，把这段贴给编码 Agent，改完再跑同一条 check。
+
+**多个 Agent 同时写，要走第三条路吗？**  
+不要。仍是路 A（或路 B）。共享同一份 pin，各自改代码，CI 收紧。见上面「多 Agent 协作」。
 
 **想先看闸、不碰仓库：** `npx @anchorlock/cli demo` 或本仓 `npm run demo`。
