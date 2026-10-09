@@ -15,6 +15,96 @@
 
 ---
 
+## 0.5 两份文件长什么样
+
+`check` 只读字段名。下面是**对公转账**里最容易漂的五个名字，是切片，不是整份支付说明书。
+
+**openapi.json**（路 A，后端发版，不要手写）：
+
+```json
+{
+  "openapi": "3.0.3",
+  "info": { "title": "payment-api", "version": "1.4.0" },
+  "paths": {
+    "/payments/transfers": {
+      "post": {
+        "operationId": "createTransfer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TransferReq" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TransferReq": {
+        "type": "object",
+        "required": ["payer_account", "payee_account", "payment_amount", "payment_currency"],
+        "properties": {
+          "payer_account": { "type": "string", "description": "付款账号" },
+          "payee_account": { "type": "string", "description": "收款账号" },
+          "payment_amount": { "type": "string", "description": "转账金额，十进制字符串" },
+          "payment_currency": { "type": "string", "description": "币种，ISO 4217" }
+        }
+      },
+      "TransferRes": {
+        "type": "object",
+        "properties": {
+          "payment_id": { "type": "string", "description": "支付流水号" },
+          "payment_status": { "type": "string" }
+        }
+      }
+    }
+  }
+}
+```
+
+规范名在 `properties` 上。消费仓不提交这份文件，只提交 pin：`{ "url", "hash", "version" }`。
+
+**constraints.json**（路 B 人确认后的名单；路 A 用 `anchor constraints --from` 投影，不要手写）：
+
+```json
+{
+  "schemaVersion": "1",
+  "units": [
+    {
+      "id": "payment_id",
+      "type": "string",
+      "aliases": ["paymentId", "payId", "bank_serial_no", "支付流水号"]
+    },
+    {
+      "id": "payer_account",
+      "type": "string",
+      "aliases": ["fromAccount", "payerAcct", "payer_acct", "付款账号"]
+    },
+    {
+      "id": "payee_account",
+      "type": "string",
+      "aliases": ["toAccount", "payeeAcct", "payee_acct", "收款账号"]
+    },
+    {
+      "id": "payment_amount",
+      "type": "string",
+      "aliases": ["amount", "txnAmt", "pay_amt", "转账金额"]
+    },
+    {
+      "id": "payment_currency",
+      "type": "string",
+      "aliases": ["currency", "ccy", "币种"]
+    }
+  ]
+}
+```
+
+`id` 是规范名。前端的 `fromAccount` / `amount`，或测试里的 `"付款账号"`，应对齐 `payer_account` / `payment_amount`。
+
+---
+
 ## 1. 路 A：钉死的 OpenAPI（推荐）
 
 后端构建导出说明书（Springdoc / Nest / FastAPI），打 tag，把 `openapi.json` 挂到 Release。前端**不 clone 后端仓**，不对着线上 `/v3/api-docs` 扫。

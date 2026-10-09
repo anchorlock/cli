@@ -770,6 +770,7 @@
       font-size: 13px; color: var(--text-secondary);
     }
     .path-fork { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 40px; }
+    .path-fork .path-pick.span { grid-column: 1 / -1; }
     .path-pick {
       display: block; text-decoration: none; color: inherit;
       position: relative; overflow: hidden;
@@ -788,7 +789,7 @@
     .path-pick h3 { font-size: 17px; font-weight: 600; color: var(--anchor); margin-bottom: 8px; letter-spacing: -0.02em; }
     .path-pick p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 14px; }
     .path-pick-go { font-size: 13px; font-weight: 600; color: var(--accent); }
-    main > section { scroll-margin-top: 80px; }
+    main > section, .path-how { scroll-margin-top: 80px; }
     .path-how-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
     .path-how-head h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; color: var(--anchor); }
     .path-mark { font-family: var(--mono); font-size: 12px; color: var(--accent); }
@@ -838,13 +839,7 @@
     .hero-copy { animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
     .hero-visual { animation: rise 1s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
     html.motion-ok main section:not(.hero) .wrap {
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    html.motion-ok main section:not(.hero).is-in .wrap {
-      opacity: 1;
-      transform: none;
+      animation: rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -895,11 +890,13 @@
         AnchorLock
       </a>
       <ul class="nav-links">
-        <li><a href="#why">出了什么事</a></li>
+        <li><a href="#why">为什么需要</a></li>
         <li><a href="#demo">看红变绿</a></li>
-        <li><a href="#cast">抛锚与收紧</a></li>
+        <li><a href="#cast">怎么卡住</a></li>
         <li><a href="#install">安装</a></li>
-        <li><a href="#start">接到项目</a></li>
+        <li><a href="#start">使用</a></li>
+        <li><a href="#agents">多 Agent</a></li>
+        <li><a href="docs/">文档</a></li>
       </ul>
       <div class="nav-end">
         <div class="theme-switch" role="group" aria-label="显示模式">
@@ -1192,7 +1189,7 @@
     <section id="install">
       <div class="wrap">
         <p class="kicker">QUICK START</p>
-        <h2 class="section-title">装进仓。一次就够。</h2>
+        <h2 class="section-title">安装。一次就够。</h2>
         <p class="section-desc">
           需要 Node 18 +。本 CLI 做的是<strong>收紧</strong>：<code>anchor check</code> 只查字段名。写盘前的<strong>抛锚</strong>是 SemanticAnchor 的 <code>bind</code> / <code>verify_usage</code>，吃同一份 <code>constraints.json</code>。
         </p>
@@ -1226,7 +1223,7 @@
     <section id="start">
       <div class="wrap">
         <p class="kicker">HOOK INTO YOUR REPO</p>
-        <h2 class="section-title">上手。对照钉死的说明书。</h2>
+        <h2 class="section-title">使用。对照钉死的说明书。</h2>
         <p class="section-desc">
           契约必须有仓外权威。编码 Agent 根据需求自己写名单，等于没锁。有 OpenAPI 就 pin；没有就一处起草，人确认一次。
         </p>
@@ -1294,6 +1291,12 @@
             <h3>没有 OpenAPI</h3>
             <p>一处 <code>init --from-code</code> 起草，<strong>人确认</strong> ids。其它仓只 check 这一份。不要让 Agent 按需求编名单。</p>
             <span class="path-pick-go">看路 B 怎么做 →</span>
+          </a>
+          <a class="path-pick span" href="#agents">
+            <div class="path-pick-kicker">场景 · 不是 PATH C</div>
+            <h3>多个 Agent 同时写</h3>
+            <p>Cursor / Claude / 前端和测试分头开，仍走路 A 或路 B。共享同一份 pin，各自改代码，CI 收紧。不要每人编一份名单。</p>
+            <span class="path-pick-go">看怎么分工 →</span>
           </a>
         </div>
 
@@ -1429,38 +1432,6 @@
           <p class="path-note"><strong>编码 Agent 不许自己 repin。</strong>换版由「后端发布了新版本」触发，不由「check 红了想换绿」触发。红了只能改代码。</p>
         </div>
 
-        <div class="path-how" id="agents">
-          <div class="path-how-head">
-            <span class="path-mark">协作</span>
-            <h3>多个 Agent 同时写：不是第三条路</h3>
-          </div>
-          <p class="section-desc">Cursor、Claude、Copilot 并行，或前端 / 后端 / 测试各开一个 Agent，<strong>仍走路 A</strong>（没有说明书则路 B）。协作增加的是写代码的人，不是契约的份数。共享 <code>contracts/order.pin.json</code>，CI 只认同一条 check。</p>
-          <div class="who-grid">
-            <div class="who-card">
-              <h4>人 / 后端 Agent</h4>
-              <ol>
-                <li>人：第一次 <code>pin</code>；后端发新 tag 后 <code>repin --change &lt;需求号&gt;</code></li>
-                <li>后端 Agent：实现接口、导出 OpenAPI、打 tag</li>
-                <li>不要在消费仓里扫后端自己的 Java，也不要手写名单当权威</li>
-              </ol>
-            </div>
-            <div class="who-card">
-              <h4>前端 / 测试 Agent</h4>
-              <ol>
-                <li>用说明书上的名字写代码。红了把整段 FAIL 贴给<strong>写飘的那个</strong> Agent</li>
-                <li>不许 <code>repin</code>、改 pin、按这次对话另编名单</li>
-                <li>跨仓顺序：后端发版 → 人 <code>repin</code> → 消费仓 Agent 才用新字段。测试仓和前端仓 pin 同一个 tag</li>
-              </ol>
-            </div>
-          </div>
-          <div class="code-block">
-            <pre><span class="comment"># 每个 Agent、每个消费仓，同一条。不是每人一份名单</span>
-<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
-<span class="out">  pin   v1.5.0 · change PROJ-123</span>
-<span class="comment"># 开工先看这一行是不是同一版。冲突在 git，不在契约</span></pre>
-          </div>
-        </div>
-
         <div class="path-how" id="path-b">
           <div class="path-how-head">
             <span class="path-mark">B</span>
@@ -1529,6 +1500,112 @@
           <p class="path-note">连代码都没有、要从零发明字段时，才用 <code>anchor constraints --init</code> 出空白模板。那是例外，不是路 B 的主路径。</p>
         </div>
 
+        <div class="path-how" id="shapes">
+          <div class="path-how-head">
+            <span class="path-mark">文件</span>
+            <h3>这两份文件长什么样</h3>
+          </div>
+          <p class="section-desc">下面是<strong>对公转账</strong>里最容易各写一套的五个名字。这是切片，不是整份支付说明书。<code>check</code> 只读字段名。消费仓提交的是 <code>pin.json</code>，不是整份 OpenAPI。</p>
+          <div class="who-grid">
+            <div class="who-card">
+              <h4>openapi.json · 路 A 的权威</h4>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px">框架导出。规范名在 schema 的 <code>properties</code> 上：流水号、付款账号、收款账号、金额、币种。</p>
+            </div>
+            <div class="who-card">
+              <h4>constraints.json · 路 B / 抛锚吃的名单</h4>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px"><code>id</code> 是规范名。前端习惯的 <code>fromAccount</code>、<code>amount</code>，核心库的 <code>payer_acct</code>，都写进 <code>aliases</code>。路 A 用投影，不要手写。</p>
+            </div>
+          </div>
+          <div class="split-code" style="margin-bottom:16px">
+            <div class="hero-panel">
+              <div class="hero-panel-head"><span>openapi.json</span><span class="file">POST /payments/transfers</span></div>
+              <pre>{
+  "openapi": "3.0.3",
+  "info": { "title": "payment-api", "version": "1.4.0" },
+  "paths": {
+    "/payments/transfers": {
+      "post": {
+        "operationId": "createTransfer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TransferReq" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TransferRes" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TransferReq": {
+        "type": "object",
+        "required": ["payer_account", "payee_account", "payment_amount", "payment_currency"],
+        "properties": {
+          "payer_account": { "type": "string", "description": "付款账号" },
+          "payee_account": { "type": "string", "description": "收款账号" },
+          "payment_amount": { "type": "string", "description": "转账金额，十进制字符串" },
+          "payment_currency": { "type": "string", "description": "币种，ISO 4217" }
+        }
+      },
+      "TransferRes": {
+        "type": "object",
+        "properties": {
+          "payment_id": { "type": "string", "description": "支付流水号" },
+          "payment_status": { "type": "string" }
+        }
+      }
+    }
+  }
+}</pre>
+            </div>
+            <div class="hero-panel">
+              <div class="hero-panel-head"><span>constraints.json</span><span class="file">同一笔转账</span></div>
+              <pre>{
+  "schemaVersion": "1",
+  "units": [
+    {
+      "id": "payment_id",
+      "type": "string",
+      "aliases": ["paymentId", "payId", "bank_serial_no", "支付流水号"]
+    },
+    {
+      "id": "payer_account",
+      "type": "string",
+      "aliases": ["fromAccount", "payerAcct", "payer_acct", "付款账号"]
+    },
+    {
+      "id": "payee_account",
+      "type": "string",
+      "aliases": ["toAccount", "payeeAcct", "payee_acct", "收款账号"]
+    },
+    {
+      "id": "payment_amount",
+      "type": "string",
+      "aliases": ["amount", "txnAmt", "pay_amt", "转账金额"]
+    },
+    {
+      "id": "payment_currency",
+      "type": "string",
+      "aliases": ["currency", "ccy", "币种"]
+    }
+  ]
+}</pre>
+            </div>
+          </div>
+          <p class="path-note">前端写成 <code>fromAccount</code> / <code>amount</code>，或测试断言写成 <code>"付款账号"</code> → 红，应改成 <code>payer_account</code> / <code>payment_amount</code>。路 A 的消费仓只提交 pin，例如 <code>{ "url": "https://…/v1.4.0/openapi.json", "hash": "sha256:…", "version": "v1.4.0" }</code>。</p>
+        </div>
+
         <div class="path-how" id="ci">
           <div class="path-how-head">
             <span class="path-mark">CI</span>
@@ -1554,6 +1631,38 @@
         </table>
       </div>
     </section>
+
+    <section id="agents">
+      <div class="wrap">
+        <p class="kicker">SEVERAL AGENTS · NOT PATH C</p>
+        <h2 class="section-title">多个 Agent 同时写：不是第三条路</h2>
+        <p class="section-desc">Cursor、Claude、Copilot 并行，或前端 / 后端 / 测试各开一个 Agent，<strong>仍走路 A</strong>（没有说明书则路 B）。协作增加的是写代码的人，不是契约的份数。共享 <code>contracts/order.pin.json</code>，CI 只认同一条 check。</p>
+        <div class="who-grid">
+          <div class="who-card">
+            <h4>人 / 后端 Agent</h4>
+            <ol>
+              <li>人：第一次 <code>pin</code>；后端发新 tag 后 <code>repin --change &lt;需求号&gt;</code></li>
+              <li>后端 Agent：实现接口、导出 OpenAPI、打 tag</li>
+              <li>不要在消费仓里扫后端自己的 Java，也不要手写名单当权威</li>
+            </ol>
+          </div>
+          <div class="who-card">
+            <h4>前端 / 测试 Agent</h4>
+            <ol>
+              <li>用说明书上的名字写代码。红了把整段 FAIL 贴给<strong>写飘的那个</strong> Agent</li>
+              <li>不许 <code>repin</code>、改 pin、按这次对话另编名单</li>
+              <li>跨仓顺序：后端发版 → 人 <code>repin</code> → 消费仓 Agent 才用新字段。测试仓和前端仓 pin 同一个 tag</li>
+            </ol>
+          </div>
+        </div>
+        <div class="code-block">
+          <pre><span class="comment"># 每个 Agent、每个消费仓，同一条。不是每人一份名单</span>
+<span class="cmd">npx anchor check --contract</span> contracts/order.pin.json <span class="cmd">--src</span> src <span class="cmd">--strict --require-hash</span>
+<span class="out">  pin   v1.5.0 · change PROJ-123</span>
+<span class="comment"># 开工先看这一行是不是同一版。冲突在 git，不在契约</span></pre>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -1564,6 +1673,7 @@
         <li><a href="#install">安装</a></li>
         <li><a href="#start">接到项目</a></li>
         <li><a href="#agents">多 Agent</a></li>
+        <li><a href="docs/">文档</a></li>
         <li><a href="https://www.npmjs.com/package/@anchorlock/cli">npm</a></li>
         <li><a href="https://www.npmjs.com/package/@keelforge/spec-forge">spec-forge</a></li>
       </ul>
@@ -1864,7 +1974,7 @@
           entries.forEach(function (entry) {
             if (entry.isIntersecting) entry.target.classList.add("is-in");
           });
-        }, { threshold: 0.16, rootMargin: "0px 0px -8% 0px" });
+        }, { threshold: 0, rootMargin: "80px 0px 0px 0px" });
         document.querySelectorAll("main section:not(.hero)").forEach(function (sec) { io.observe(sec); });
       } else {
         document.querySelectorAll("main section:not(.hero)").forEach(function (sec) { sec.classList.add("is-in"); });

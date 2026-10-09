@@ -3,6 +3,7 @@
 ## 0.1.9
 
 - Docs: several coding agents is not a third path. Share one pin and one check; field scope still moves only when the backend releases.
+- Product page: `#start` is a long section; the 16% intersection reveal left it invisible and left a blank footer. Content is visible by default; multi-agent is its own section.
 
 ## 0.1.8
 
