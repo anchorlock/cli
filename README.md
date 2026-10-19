@@ -94,7 +94,7 @@ Do not `init --from-code` in every repo. Two drafts (`orderStatus` vs `order_sta
 | Shape / enum values at write time | SemanticAnchor `verify_usage` |
 | Demand-repo authoring / compile / pack | `@keelforge/spec-forge` |
 | A field list the coding agent wrote from the ticket | Path A pin, or Path B + **human** confirm |
-| Company defaults, design tokens | `@guosen-osdd/osdd-spec-cli` |
+| Company defaults, design tokens | your org's spec CLI (e.g. `@your-org/spec-cli`) |
 
 ## Install
 
