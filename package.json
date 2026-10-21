@@ -1,6 +1,6 @@
 {
   "name": "@anchorlock/cli",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Field-name gate: consumer repos vs a pinned OpenAPI.",
   "bin": {
     "anchor": "./bin/anchor.js"
@@ -18,7 +18,7 @@
     "skills"
   ],
   "scripts": {
-    "test": "node --test test/",
+    "test": "node scripts/run-tests.js",
     "demo": "node bin/anchor.js demo",
     "preview": "npx --yes serve public -l 4174",
     "prepublishOnly": "npm test"
@@ -27,7 +27,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@keelforge/spec-forge": "^0.5.19"
+    "@anchorlock/core": "^0.6.0"
   },
   "homepage": "https://www.npmjs.com/package/@anchorlock/cli",
   "publishConfig": {

@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
-- Engine lookup tries `@anchorlock/core` (or a sibling `anchorlock-core` checkout) first, then falls back to `@keelforge/spec-forge`.
+- Kernel is now `@anchorlock/core` >= 0.6.0 (was `@keelforge/spec-forge`). A sibling `anchorlock-core` checkout is used first when present.
+- `npm test` works on Windows and on Node 22+.
 
 ## 0.1.9
 

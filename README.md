@@ -92,13 +92,13 @@ Do not `init --from-code` in every repo. Two drafts (`orderStatus` vs `order_sta
 | Not this | Use instead |
 |---|---|
 | Shape / enum values at write time | SemanticAnchor `verify_usage` |
-| Demand-repo authoring / compile / pack | `@keelforge/spec-forge` |
+| Demand-repo authoring / compile / pack | `@anchorlock/core` |
 | A field list the coding agent wrote from the ticket | Path A pin, or Path B + **human** confirm |
 | Company defaults, design tokens | your org's spec CLI (e.g. `@your-org/spec-cli`) |
 
 ## Install
 
-Node.js 18+. Kernel: `@keelforge/spec-forge` ≥ 0.5.19.
+Node.js 18+. Kernel: `@anchorlock/core` ≥ 0.6.0, installed with the CLI.
 
 ```bash
 npm install -D @anchorlock/cli
@@ -115,5 +115,5 @@ MIT
 
 ## Publish (maintainers)
 
-1. Publish the kernel: in `spec-forge`, `npm test && npm publish --access public`.
+1. Publish the kernel: in `anchorlock-core`, `npm test && npm publish --access public`.
 2. Here, `npm install` so the dependency resolves from the registry, then `npm test && npm publish --access public`.

@@ -21,10 +21,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
-      - name: Install from npm registry
-        run: |
-          # Local lockfile links ../spec-forge. CI must resolve the published kernel.
-          rm -f package-lock.json
-          npm install
+      - name: Install
+        run: npm ci
       - name: Test
         run: npm test
