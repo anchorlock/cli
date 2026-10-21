@@ -18,9 +18,11 @@ const term = require('../lib/term');
 const BIN = path.join(__dirname, '..', 'bin', 'anchor.js');
 
 function run(args, cwd) {
+  // node --test 在终端里会给子进程设 FORCE_COLOR；断言按纯文本匹配，须关掉颜色
   return spawnSync(process.execPath, [BIN].concat(args), {
     encoding: 'utf8',
     cwd: cwd || path.join(__dirname, '..'),
+    env: Object.assign({}, process.env, { NO_COLOR: '1' }),
   });
 }
 
