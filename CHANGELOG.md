@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Engine lookup tries `@anchorlock/core` (or a sibling `anchorlock-core` checkout) first, then falls back to `@keelforge/spec-forge`.
+
 ## 0.1.9
 
 - Docs: several coding agents is not a third path. Share one pin and one check; field scope still moves only when the backend releases.
